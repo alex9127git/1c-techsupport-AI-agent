@@ -1,7 +1,5 @@
 import json
-from os import environ
-from requests import Request, Session
-from api.auth import ApiToken
+from requests import Request, Session, Response
 import uuid
 
 
@@ -29,33 +27,21 @@ def get_token_request() -> Request:
         headers={
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json',
-            'RqUID': str(uuid.uuid4()),
-            'Authorization': f'Basic {environ["AUTH_KEY"]}'
+            'RqUID': str(uuid.uuid4())
         }
     )
 
 
-def get_model_query_request(token: ApiToken) -> Request:
+def get_model_query_template() -> Request:
     """
-    :return: Шаблон объекта Request с необходимыми данными для получения токена доступа к моделям Gigachat.
+    :return: Шаблон объекта Request с необходимыми данными для получения тестового сообщения от агента.
     """
     return Request(
         'POST',
         url='https://api.giga.chat/v1/chat/completions',
-        data=json.dumps({
-            'model': 'Gigachat-2',
-            'messages': [
-                {
-                    'role': 'user',
-                    'content': 'Привет, Gigachat!'
-                }
-            ],
-            'profanity_check': True
-        }),
         headers={
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': f'Bearer {token}'
+            'Accept': 'application/json'
         }
     )
 
