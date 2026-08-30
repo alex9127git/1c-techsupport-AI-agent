@@ -1,6 +1,5 @@
-import json
-from requests import Request, Session, Response
 import uuid
+from requests import Request, Session
 
 
 def get_empty_session() -> Session:
@@ -34,7 +33,7 @@ def get_token_request() -> Request:
 
 def get_model_query_template() -> Request:
     """
-    :return: Шаблон объекта Request с необходимыми данными для получения тестового сообщения от агента.
+    :return: Шаблон объекта Request с необходимыми данными для получения сообщения от агента.
     """
     return Request(
         'POST',

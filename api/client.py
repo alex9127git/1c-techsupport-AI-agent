@@ -1,10 +1,12 @@
 from os import environ
+from typing import Any
+
 from dotenv import load_dotenv
 from requests import Response
 import api.web
 from api.auth import ApiToken
 import json
-from api.context import get_empty_context
+from api.context import *
 
 
 class ApiClient:
@@ -19,13 +21,11 @@ class ApiClient:
     def update_token(self):
         self.token.update(self.auth_key)
 
-    def generate_response(self, prompt) -> Response:
+    def generate_response(self, context: Context) -> Response:
         self.update_token()
         session = api.web.get_empty_session()
         request = session.prepare_request(api.web.get_model_query_template())
         request.headers['Authorization'] = f'Bearer {self.token}'
-        context = get_empty_context()
-        context.add_message('user', prompt)
         data = {
             'model': 'Gigachat-2',
             'messages': context.messages,
@@ -36,17 +36,24 @@ class ApiClient:
         response = session.send(request)
         return response
 
-    def extract_message(self, response):
-        response_json = json.loads(response.text)
-        if response.status_code == 200:
-            return response_json['choices'][0]['message']['content']
-        else:
-            return response_json
+    def generate_answer(self, prompt) -> Response:
+        context = get_empty_context()
+        context.add_message('user', prompt)
+        return self.generate_response(context)
+
+    def response_pipeline(self, prompt):
+        response = self.generate_answer(prompt)
+        if response.status_code != 200:
+            return f'Ошибка :(\n{response.status_code} {response.content}'
+        prev_messages = json.loads(response.request.body)['messages'][1:]
+        assistant_message = json.loads(response.text)['choices'][0]['message']
+        context = get_confidence_context([*prev_messages, assistant_message])
+        confidence_level = json.loads(self.generate_response(context).text)['choices'][0]['message']['content']
+        return assistant_message['content'] + f'\n\n{confidence_level}'
 
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='../config/auth.env')
     client = ApiClient(environ["AUTH_KEY"])
     question = input()
-    prompt_response = client.generate_response(question)
-    print(client.extract_message(prompt_response))
+    print(client.response_pipeline(question))
