@@ -29,7 +29,9 @@ class ApiClient:
         data = {
             'model': 'Gigachat-2',
             'messages': context.messages,
-            'profanity_check': True
+            'profanity_check': True,
+            'response_format': context.response_format,
+            'temperature': 0.1
         }
         request.body = json.dumps(data)
         request.headers['Content-Length'] = str(len(request.body))
@@ -46,10 +48,27 @@ class ApiClient:
         if response.status_code != 200:
             return f'Ошибка :(\n{response.status_code} {response.content}'
         prev_messages = json.loads(response.request.body)['messages'][1:]
-        assistant_message = json.loads(response.text)['choices'][0]['message']
+        agent_output = json.loads(json.loads(response.text)['choices'][0]['message']['content'])
+        self_rating = agent_output['confidence_level']
+        assistant_message = {
+            'role': 'assistant',
+            'content': agent_output['output']
+        }
         context = get_confidence_context([*prev_messages, assistant_message])
-        confidence_level = json.loads(self.generate_response(context).text)['choices'][0]['message']['content']
-        return assistant_message['content'] + f'\n\n{confidence_level}'
+        retries = 0
+        other_rating = 0
+        other_rating_generated = False
+        while retries < 3:
+            rating_output = json.loads(self.generate_response(context).text)['choices'][0]['message']['content']
+            if len(rating_output) > 0:
+                other_rating = json.loads(rating_output)['confidence_level']
+                other_rating_generated = True
+                break
+            retries += 1
+        if not other_rating_generated:
+            other_rating = self_rating
+        return (assistant_message['content'] + f'\n\nУровень уверенности: {self_rating}%/{other_rating}%' +
+                ('' if other_rating_generated else ' (уровень оценки не удалось получить)'))
 
 
 if __name__ == '__main__':
