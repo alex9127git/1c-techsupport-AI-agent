@@ -38,13 +38,14 @@ class ApiClient:
         response = session.send(request)
         return response
 
-    def generate_answer(self, prompt) -> Response:
-        context = get_empty_context()
-        context.add_message('user', prompt)
+    def generate_answer(self, prompt, context=None) -> Response:
+        if context is None:
+            context = get_empty_context()
+            context.add_message('user', prompt)
         return self.generate_response(context)
 
-    def response_pipeline(self, prompt):
-        response = self.generate_answer(prompt)
+    def response_pipeline(self, prompt, context=None):
+        response = self.generate_answer(prompt, context)
         if response.status_code != 200:
             return f'Ошибка :(\n{response.status_code} {response.content}'
         prev_messages = json.loads(response.request.body)['messages'][1:]
