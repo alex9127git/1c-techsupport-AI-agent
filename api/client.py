@@ -7,6 +7,7 @@ import api.web
 from api.auth import ApiToken
 import json
 from api.context import *
+from api.context import Context
 
 
 class ApiClient:
@@ -27,7 +28,7 @@ class ApiClient:
         request = session.prepare_request(api.web.get_model_query_template())
         request.headers['Authorization'] = f'Bearer {self.token}'
         data = {
-            'model': 'Gigachat-2',
+            'model': 'Gigachat-3-Pro',
             'messages': context.messages,
             'profanity_check': True,
             'response_format': context.response_format,
@@ -38,14 +39,14 @@ class ApiClient:
         response = session.send(request)
         return response
 
-    def generate_answer(self, prompt, context=None) -> Response:
+    def generate_answer(self, prompt, context=None) -> tuple[Context, Response]:
         if context is None:
             context = get_empty_context()
-            context.add_message('user', prompt)
-        return self.generate_response(context)
+        context.add_message('user', prompt)
+        return context, self.generate_response(context)
 
     def response_pipeline(self, prompt, context=None):
-        response = self.generate_answer(prompt, context)
+        result_context, response = self.generate_answer(prompt, context)
         if response.status_code != 200:
             return f'Ошибка :(\n{response.status_code} {response.content}'
         prev_messages = json.loads(response.request.body)['messages'][1:]
@@ -68,12 +69,16 @@ class ApiClient:
             retries += 1
         if not other_rating_generated:
             other_rating = self_rating
-        return (assistant_message['content'] + f'\n\nУровень уверенности: {self_rating}%/{other_rating}%' +
+        result_context.add_message(assistant_message['role'], assistant_message['content'])
+        return (result_context,
+                assistant_message['content'] + f'\n\nУровень уверенности: {self_rating}%/{other_rating}%' +
                 ('' if other_rating_generated else ' (уровень оценки не удалось получить)'))
 
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='../config/auth.env')
     client = ApiClient(environ["AUTH_KEY"])
-    question = input()
-    print(client.response_pipeline(question))
+    context = None
+    while question := input():
+        context, message = client.response_pipeline(question, context)
+        print(message)
