@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1C Techsupport AI Agent</title>
+    <style>
+        :root { --accent: #2b6cb0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: #f4f6f9;
+            color: #1a202c;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #2b6cb0, #3182ce);
+            color: #fff;
+            padding: 48px 24px;
+            text-align: center;
+        }
+        header h1 { font-size: 28px; margin-bottom: 8px; }
+        header p { opacity: .9; font-size: 15px; }
+        main { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08);
+        }
+        .card h2 { font-size: 18px; margin-bottom: 12px; color: var(--accent); }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            color: #234e52;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 14px;
+        }
+        .status .dot { width: 10px; height: 10px; border-radius: 50%; background: #38a169; }
+        .endpoint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+        .endpoint:last-child { border-bottom: none; }
+        .method {
+            font-weight: 600;
+            color: #fff;
+            background: var(--accent);
+            border-radius: 5px;
+            padding: 2px 8px;
+            font-size: 12px;
+            min-width: 48px;
+            text-align: center;
+        }
+        .endpoint code { color: #2d3748; word-break: break-all; }
+        .endpoint .badge {
+            font-size: 11px;
+            color: #718096;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>1C Techsupport AI Agent</h1>
+        <p>MVP сервис техподдержки на базе ИИ &middot; Flask API</p>
+    </header>
+    <main>
+        <div class="card">
+            <span class="status"><span class="dot"></span> Сервер работает</span>
+        </div>
+
+        <div class="card">
+            <h2>AI-агент</h2>
+            <div class="endpoint"><span><span class="method">POST</span> <code>/api/chat</code></span><span class="badge">вопрос-ответ</span></div>
+            <div class="endpoint"><span><span class="method">POST</span> <code>/api/chat/image</code></span><span class="badge">скриншот</span></div>
+        </div>
+
+        <div class="card">
+            <h2>База знаний</h2>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/kb</code></span><span class="badge">список</span></div>
+            <div class="endpoint"><span><span class="method">POST</span> <code>/api/kb</code></span><span class="badge">создать</span></div>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/kb/&lt;id&gt;</code></span><span class="badge">детали</span></div>
+            <div class="endpoint"><span><span class="method">PUT</span> <code>/api/kb/&lt;id&gt;</code></span><span class="badge">редактировать</span></div>
+            <div class="endpoint"><span><span class="method">DELETE</span> <code>/api/kb/&lt;id&gt;</code></span><span class="badge">удалить</span></div>
+        </div>
+
+        <div class="card">
+            <h2>Администрирование</h2>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/dashboard</code></span><span class="badge">метрики</span></div>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/settings</code></span><span class="badge">настройки</span></div>
+            <div class="endpoint"><span><span class="method">PUT</span> <code>/api/settings</code></span><span class="badge">обновить</span></div>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/escalations</code></span><span class="badge">эскалации</span></div>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/logs</code></span><span class="badge">журнал</span></div>
+        </div>
+
+        <div class="card">
+            <h2>Интеграции</h2>
+            <div class="endpoint"><span><span class="method">GET</span> <code>/api/integrations</code></span><span class="badge">статус кан.</span></div>
+            <div class="endpoint"><span><span class="method">POST</span> <code>/api/integrations/bitrix/webhook</code></span><span class="badge">Bitrix24</span></div>
+            <div class="endpoint"><span><span class="method">POST</span> <code>/api/integrations/redmine/webhook</code></span><span class="badge">Redmine</span></div>
+        </div>
+    </main>
+</body>
+</html>
