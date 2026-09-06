@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Console — 1C Techsupport AI Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dev_console.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Dev Console</h1>
+        <p>Проверка функционала API &middot; 1C Techsupport AI Agent</p>
+    </header>
+
+    <main>
+        <section id="chat-section" class="card">
+            <h2>Чат (вопрос-ответ)</h2>
+            <div class="controls">
+                <input type="text" id="chat-message" placeholder="Вопрос пользователя">
+                <button data-action="chat">Отправить</button>
+            </div>
+            <pre id="chat-result" class="result">—</pre>
+        </section>
+
+        <section id="image-section" class="card">
+            <h2>Скриншот (анализ изображения)</h2>
+            <div class="controls">
+                <input type="file" id="image-file" accept="image/png,image/jpeg">
+                <input type="text" id="image-message" placeholder="Комментарий (необязательно)">
+                <button data-action="image">Отправить скриншот</button>
+            </div>
+            <pre id="image-result" class="result">—</pre>
+        </section>
+
+        <section id="kb-section" class="card">
+            <h2>База знаний</h2>
+            <div class="controls-group">
+                <div class="controls">
+                    <input type="text" id="kb-title" placeholder="Заголовок">
+                    <input type="text" id="kb-tags" placeholder="Теги через запятую">
+                </div>
+                <div class="controls">
+                    <textarea id="kb-content" placeholder="Содержимое документа"></textarea>
+                </div>
+                <div class="controls">
+                    <button data-action="kb-list">Список</button>
+                    <button data-action="kb-create">Создать</button>
+                    <input type="number" id="kb-id" placeholder="id">
+                    <button data-action="kb-get">Детали</button>
+                    <button data-action="kb-update">Обновить</button>
+                    <button data-action="kb-delete">Удалить</button>
+                </div>
+            </div>
+            <pre id="kb-result" class="result">—</pre>
+        </section>
+
+        <section id="metrics-section" class="card">
+            <h2>Метрики</h2>
+            <div class="controls">
+                <button data-action="dashboard">Дашборд</button>
+                <button data-action="logs">Логи</button>
+                <button data-action="escalations">Эскалации</button>
+            </div>
+            <pre id="metrics-result" class="result">—</pre>
+        </section>
+
+        <section id="settings-section" class="card">
+            <h2>Настройки</h2>
+            <div class="controls">
+                <button data-action="settings-get">Получить</button>
+                <input type="number" id="settings-threshold" placeholder="Порог, %">
+                <input type="text" id="settings-strategy" placeholder="Стратегия">
+                <button data-action="settings-put">Сохранить</button>
+            </div>
+            <pre id="settings-result" class="result">—</pre>
+        </section>
+
+        <section id="integrations-section" class="card">
+            <h2>Интеграции</h2>
+            <div class="controls">
+                <button data-action="int-list">Статус каналов</button>
+            </div>
+            <h3>Bitrix24</h3>
+            <div class="controls">
+                <input type="text" id="bitrix-webhook" placeholder="webhook_url">
+                <input type="text" id="bitrix-chat" placeholder="chat_id">
+                <button data-action="bitrix-webhook">Подключить Bitrix</button>
+            </div>
+            <h3>Redmine</h3>
+            <div class="controls">
+                <input type="text" id="redmine-url" placeholder="url">
+                <input type="text" id="redmine-key" placeholder="api_key">
+                <input type="text" id="redmine-project" placeholder="project_id">
+                <button data-action="redmine-webhook">Подключить Redmine</button>
+            </div>
+            <pre id="integrations-result" class="result">—</pre>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/dev_console.js') }}"></script>
+</body>
+</html>
