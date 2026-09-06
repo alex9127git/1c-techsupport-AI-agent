@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АО "Молвест" 1С | Панель AI-агента техподдержки</title>
+    <!-- Шрифты и иконки FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #0B132B;
+            --bg-sidebar: #1C2541;
+            --bg-card: #223055;
+            --bg-card-hover: #2B3D6B;
+            --accent-blue: #3A86EF;
+            --accent-cyan: #06D6A0;
+            --accent-orange: #FFD166;
+            --accent-red: #EF476F;
+            --text-main: #FFFFFF;
+            --text-muted: #8D99AE;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --modal-bg: rgba(0, 0, 0, 0.7);
+        }
+
+        .light-theme {
+            --bg-main: #F4F7FC;
+            --bg-sidebar: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #EAEFF8;
+            --accent-blue: #2563EB;
+            --accent-cyan: #059669;
+            --accent-orange: #D97706;
+            --accent-red: #DC2626;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --modal-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        aside {
+            width: 270px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .logo-area {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-area i {
+            font-size: 24px;
+            color: var(--accent-cyan);
+        }
+
+        .logo-text h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-text span {
+            font-size: 11px;
+            color: var(--accent-orange);
+            background: rgba(255, 209, 102, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .sidebar-live-widget {
+            margin: 15px 12px 5px 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.15) 0%, rgba(58, 134, 239, 0.15) 100%);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(6, 214, 160, 0.1);
+        }
+
+        .sidebar-live-widget:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(6, 214, 160, 0.25) 0%, rgba(58, 134, 239, 0.25) 100%);
+            box-shadow: 0 6px 20px rgba(6, 214, 160, 0.2);
+        }
+
+        .widget-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .pulse-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            letter-spacing: 0.5px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(6, 214, 160, 0.7);
+            animation: pulse-green 1.6s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 214, 160, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(6, 214, 160, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 214, 160, 0); }
+        }
+
+        .widget-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--text-main); }
+        .widget-subtext { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; }
+        .widget-subtext i { font-size: 10px; color: var(--accent-cyan); }
+
+        .nav-menu {
+            list-style: none;
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 10px 10px 5px;
+            letter-spacing: 1px;
+        }
+
+        .nav-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-menu li.active a, .nav-menu li a:hover {
+            background-color: var(--accent-blue);
+            color: #FFFFFF !important;
+        }
+
+        .nav-menu li a i { width: 18px; text-align: center; }
+
+        .menu-counter-badge {
+            background: var(--accent-cyan);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        /* MAIN CONTENT */
+        main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* HEADER */
+        header {
+            height: 70px;
+            background-color: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .search-bar { position: relative; width: 400px; }
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            outline: none;
+            font-size: 13px;
+        }
+        .search-bar i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);
+        }
+
+        .user-profile-actions { display: flex; align-items: center; gap: 20px; }
+        .theme-toggle-btn {
+            background: none; border: 1px solid var(--border-color); color: var(--text-main);
+            width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        .theme-toggle-btn:hover { background-color: var(--bg-card-hover); }
+
+        .notifications-wrapper { position: relative; }
+        .icon-button {
+            position: relative; cursor: pointer; font-size: 18px; color: var(--text-muted);
+            background: none; border: none; width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .icon-button:hover { background-color: var(--bg-card-hover); color: var(--accent-blue); }
+        .badge-dot {
+            position: absolute; top: 8px; right: 8px; width: 8px; height: 8px;
+            background-color: var(--accent-red); border-radius: 50%;
+        }
+
+        .profile-info {
+            display: flex; align-items: center; gap: 10px; border-left: 1px solid var(--border-color);
+            padding-left: 15px; cursor: pointer;
+        }
+        .profile-info img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
+        .profile-details h4 { font-size: 13px; font-weight: 600; }
+        .profile-details p { font-size: 11px; color: var(--text-muted); }
+
+        /* DROPDOWN NOTIFICATIONS POPUP */
+        .dropdown-popup {
+            position: absolute; top: 50px; right: 0; width: 320px;
+            background-color: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: none; flex-direction: column; z-index: 100; overflow: hidden;
+        }
+        .dropdown-popup.active { display: flex; }
+        .dropdown-header {
+            padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .dropdown-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; cursor: pointer; }
+        .dropdown-item:hover { background-color: var(--bg-card-hover); }
+        .dropdown-item p { color: var(--text-muted); margin-top: 3px; }
+
+        /* MODAL WINDOWS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--modal-bg); display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background-color: var(--bg-card); border: 1px solid var(--border-color); width: 560px; max-width: 90%;
+            border-radius: 16px; padding: 30px; display: flex; flex-direction: column; gap: 20px; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-close {
+            position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted);
+            font-size: 18px; cursor: pointer;
+        }
+
+        .modal-header-title { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .modal-header-title i { font-size: 22px; color: var(--accent-blue); }
+        .modal-header-title h3 { font-size: 18px; font-weight: 700; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+        .form-control {
+            width: 100%; padding: 10px 14px; background: var(--bg-main); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-main); font-size: 13px; outline: none;
+        }
+        .form-control:focus { border-color: var(--accent-blue); }
+
+        .modal-btn {
+            background-color: var(--accent-blue); color: white; border: none; padding: 11px 18px; border-radius: 8px;
+            font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .modal-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* DASHBOARD CONTAINER */
+        .dashboard-container { padding: 30px; display: flex; flex-direction: column; gap: 25px; }
+        .tab-content { display: none; flex-direction: column; gap: 25px; }
+        .tab-content.active { display: flex; }
+
+        /* METRICS TOP CARDS */
+        .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .metric-card {
+            background-color: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .metric-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
+        .metric-card.active-filter { border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(6, 214, 160, 0.2); }
+        .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .metric-title { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        .metric-icon { font-size: 16px; color: var(--accent-blue); }
+        .metric-value { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+        .metric-progress { width: 100%; height: 4px; background-color: rgba(128, 128, 128, 0.2); border-radius: 2px; overflow: hidden; }
+        .metric-progress-bar { height: 100%; background-color: var(--accent-cyan); border-radius: 2px; }
+        .metric-trend { font-size: 11px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: var(--accent-cyan); }
+
+        .rating-stars { color: #FFD166; font-size: 13px; }
+        .feedback-item { padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-main); margin-bottom: 12px; }
+        .feedback-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 6px; }
+        .feedback-text { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+        .analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background-color: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 15px; font-weight: 600; }
+
+        .chart-controls { display: flex; gap: 8px; }
+        .btn-timeframe {
+            background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-muted);
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
+        }
+        .btn-timeframe.active, .btn-timeframe:hover { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+
+        .chart-mockup { height: 220px; display: flex; align-items: flex-end; justify-content: space-between; padding: 10px 0 0 0; }
+        .chart-bars { display: flex; align-items: flex-end; justify-content: space-between; width: 100%; height: 180px; border-bottom: 1px solid var(--border-color); }
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; height: 100%; justify-content: flex-end; cursor: pointer; }
+        .bar-group:hover .bar { background: linear-gradient(180deg, var(--accent-cyan) 0%, rgba(6, 214, 160, 0.2) 100%); }
+        .bar { width: 24px; background: linear-gradient(180deg, var(--accent-blue) 0%, rgba(58, 134, 239, 0.2) 100%); border-radius: 4px 4px 0 0; transition: height 0.4s ease; }
+        .bar-label { font-size: 10px; color: var(--text-muted); }
+
+        .bottom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .mini-stat-card {
+            background-color: var(--bg-card); border-radius: 12px; padding: 15px 20px; border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;
+        }
+        .mini-stat-card:hover { border-color: var(--accent-blue); transform: translateY(-2px); background-color: var(--bg-card-hover); }
+        .mini-info h5 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+        .mini-info h3 { font-size: 18px; font-weight: 700; }
+        .mini-info span { font-size: 10px; color: var(--accent-cyan); }
+        .mini-circle {
+            width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 600; background: rgba(58, 134, 239, 0.1); color: var(--accent-blue); border: 2px solid var(--accent-blue);
+        }
+
+        /* TABLES */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .data-table th { text-align: left; padding: 12px 15px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-color); font-size: 11px; text-transform: uppercase; }
+        .data-table td { padding: 14px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table tr:hover { background-color: var(--bg-card-hover); }
+
+        .badge-status { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: rgba(6, 214, 160, 0.15); color: var(--accent-cyan); }
+        .badge-warning { background: rgba(255, 209, 102, 0.15); color: var(--accent-orange); }
+        .badge-danger { background: rgba(239, 71, 111, 0.15); color: var(--accent-red); }
+        .badge-blue { background: rgba(58, 134, 239, 0.15); color: var(--accent-blue); }
+
+        /* НАСТРОЙКИ АГЕНТА */
+        .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .settings-full-width { grid-column: span 2; }
+
+        .setting-card {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+            padding: 22px 25px; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .setting-card-header {
+            display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px; margin-bottom: 5px;
+        }
+
+        .setting-card-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .setting-card-title i { color: var(--accent-cyan); font-size: 18px; }
+
+        .confidence-slider-box {
+            background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;
+        }
+
+        .slider-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+        .confidence-val-badge {
+            background: var(--accent-blue); color: white; font-size: 18px; font-weight: 700;
+            padding: 4px 14px; border-radius: 20px; box-shadow: 0 4px 12px rgba(58, 134, 239, 0.4);
+        }
+
+        .range-slider-styled {
+            width: 100%; height: 8px; border-radius: 5px; background: #2B3D6B; outline: none;
+            accent-color: var(--accent-cyan); cursor: pointer;
+        }
+
+        .slider-scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+
+        .kb-modules-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .module-item-checkbox {
+            background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px;
+            padding: 12px 15px; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .module-item-checkbox:hover { border-color: var(--accent-blue); background: var(--bg-card-hover); }
+        .module-left { display: flex; align-items: center; gap: 12px; }
+        .module-left i { font-size: 20px; color: var(--accent-orange); }
+        .module-info-text strong { display: block; font-size: 13px; color: var(--text-main); }
+        .module-info-text span { font-size: 11px; color: var(--text-muted); }
+
+        /* SWITCH TOGGLE */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-round {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2B3D6B; transition: .3s; border-radius: 22px;
+        }
+        .slider-round:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider-round { background-color: var(--accent-cyan); }
+        input:checked + .slider-round:before { transform: translateX(22px); }
+
+        /* CHATS & FILES */
+        .chat-container { display: flex; height: 600px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
+        .chat-sidebar { width: 320px; border-right: 1px solid var(--border-color); overflow-y: auto; background: var(--bg-card); }
+        .chat-item { padding: 15px 20px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+        .chat-item:hover, .chat-item.active { background: var(--bg-card-hover); }
+        .chat-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .chat-item-header h4 { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        .chat-time { font-size: 10px; color: var(--text-muted); }
+        .chat-item p { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); }
+        .chat-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-card); display: flex; align-items: center; justify-content: space-between; }
+        .chat-header-info h3 { font-size: 15px; font-weight: 600; }
+        .chat-header-info p { font-size: 11px; color: var(--accent-cyan); margin-top: 2px; }
+
+        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+        .msg-ai { background: var(--bg-card); border: 1px solid var(--border-color); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg-user { background: var(--accent-blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        .live-observer-banner {
+            background: rgba(6, 214, 160, 0.08); border-bottom: 1px solid var(--accent-cyan); padding: 10px 20px;
+            font-size: 12px; color: var(--accent-cyan); display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .ai-thinking-indicator {
+            display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--accent-cyan); padding: 10px 15px;
+            background: rgba(6, 214, 160, 0.1); border-radius: 8px; border: 1px dashed var(--accent-cyan); margin-bottom: 10px; align-self: flex-start;
+        }
+
+        .chat-input-area { padding: 15px 20px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; background: var(--bg-card); align-items: center; }
+        .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); outline: none; font-size: 13px; }
+        .chat-input-area button { padding: 12px 20px; border: none; background: var(--accent-blue); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px 20px; text-align: center;
+            background: var(--bg-main); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+        }
+        .upload-zone:hover { border-color: var(--accent-blue); background: var(--bg-card-hover); }
+        .upload-zone i { font-size: 40px; color: var(--accent-blue); }
+
+        .file-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .file-item {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; transition: all 0.2s ease;
+        }
+        .file-item:hover { border-color: var(--accent-blue); background: var(--bg-card-hover); }
+        .file-info { display: flex; align-items: center; gap: 15px; font-size: 13px; font-weight: 600; }
+        .file-info i { color: var(--accent-orange); font-size: 22px; }
+        .file-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
+
+        .file-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-action-icon {
+            background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted);
+            width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-action-icon:hover { color: var(--text-main); border-color: var(--accent-blue); }
+        .btn-action-icon.danger:hover { color: #ffffff; background: var(--accent-red); border-color: var(--accent-red); }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed; bottom: 25px; right: 25px; background: var(--bg-card); border: 1px solid var(--accent-blue);
+            color: var(--text-main); padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex; align-items: center; gap: 10px; font-size: 13px; z-index: 2000; opacity: 0;
+            transform: translateY(20px); transition: all 0.3s ease; pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        .checkbox-group-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: var(--bg-main);
+            padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 5px;
+        }
+        .checkbox-group-grid label { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-main); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside>
+        <div>
+            <div class="logo-area">
+                <i class="fa-solid fa-cube"></i>
+                <div class="logo-text">
+                    <h1>АО "Молвест"</h1>
+                    <span>1С AI-Support Portal</span>
+                </div>
+            </div>
+
+            <!-- LIVE MONITORING WIDGET -->
+            <div class="sidebar-live-widget" onclick="switchTab('live-chats')">
+                <div class="widget-header-row">
+                    <div class="pulse-badge">
+                        <span class="pulse-dot"></span>
+                        <span>В эфире</span>
+                    </div>
+                    <i class="fa-solid fa-headset" style="color: var(--accent-cyan); font-size: 12px;"></i>
+                </div>
+                <div class="widget-title">AI отвечает клиентам</div>
+                <div class="widget-subtext">
+                    <span>3 активных диалога</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-section-title">Мониторинг</li>
+                <li class="active" data-tab="overview"><a href="#"><i class="fa-solid fa-chart-pie"></i> Обзор и оценки ИИ</a></li>
+                <li data-tab="live-chats">
+                    <a href="#">
+                        <i class="fa-solid fa-circle-play" style="color: var(--accent-cyan);"></i> Live-наблюдение AI
+                        <span class="menu-counter-badge">3</span>
+                    </a>
+                </li>
+                <li data-tab="chats"><a href="#"><i class="fa-solid fa-comments"></i> Чаты (Bitrix24)</a></li>
+                <li data-tab="tickets"><a href="#"><i class="fa-solid fa-ticket"></i> Заявки (Redmine)</a></li>
+                <li data-tab="screenshots"><a href="#"><i class="fa-solid fa-brain"></i> Анализ скриншотов 1С</a></li>
+
+                <li class="nav-section-title" style="margin-top: 15px;">Управление</li>
+                <li data-tab="kb"><a href="#"><i class="fa-solid fa-book-bookmark"></i> База знаний 1С</a></li>
+                <li data-tab="users"><a href="#"><i class="fa-solid fa-users-gear"></i> Права и роли 1С</a></li>
+                <li data-tab="settings"><a href="#"><i class="fa-solid fa-sliders"></i> Настройки агента</a></li>
+                <li data-tab="logs"><a href="#"><i class="fa-solid fa-file-lines"></i> Логи и отчёты</a></li>
+            </ul>
+        </div>
+
+        <div style="padding: 15px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-muted);">
+            <i class="fa-solid fa-code" style="color: var(--accent-cyan);"></i> разработано командой Python Recruitment
+        </div>
+    </aside>
+
+    <!-- MAIN APP WRAPPER -->
+    <main>
+        <!-- HEADER -->
+        <header>
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="globalSearchInput" placeholder="Поиск по регламентам Молвест, ошибкам 1С:ERP, ЗУП...">
+            </div>
+
+            <div class="user-profile-actions">
+                <button class="theme-toggle-btn" id="themeToggleBtn" title="Сменить тему">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+
+                <div class="notifications-wrapper">
+                    <button class="icon-button" id="notificationBtn">
+                        <i class="fa-regular fa-bell"></i>
+                        <div class="badge-dot"></div>
+                    </button>
+                    <div class="dropdown-popup" id="notificationPopup">
+                        <div class="dropdown-header">
+                            <span>Уведомления</span>
+                            <span style="font-size: 11px; color: var(--accent-blue); cursor: pointer;" id="clearNotifications">Прочитать все</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <strong><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-orange); margin-right: 4px;"></i> Эскалация в Bitrix24</strong>
+                            <p>Низкая уверенность AI (38%) по вопросу закрытия периода в 1С:ERP.</p>
+                            <span style="font-size: 10px; color: var(--text-muted); font-style: italic;">5 минут назад</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <strong><i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); margin-right: 4px;"></i> Ошибка распознавания</strong>
+                            <p>Скриншот ошибки из 1С:ЗУП успешно проанализирован OCR-модулем.</p>
+                            <span style="font-size: 10px; color: var(--text-muted); font-style: italic;">12 минут назад</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <strong><i class="fa-solid fa-database" style="color: var(--accent-blue); margin-right: 4px;"></i> База знаний обновлена</strong>
+                            <p>Загружен новый регламент "Инструкция_по_закрытию_месяца_ERP.pdf".</p>
+                            <span style="font-size: 10px; color: var(--text-muted); font-style: italic;">1 час назад</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-info" id="profileTrigger" onclick="openProfileModal()">
+                    <img id="userAvatarImg" src="image_079f1b.jpg" alt="Avatar">
+                    <div class="profile-details">
+                        <h4 id="userProfileName">мой аккаунт</h4>
+                        <p id="userProfileRole">Администратор IT-системы</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <div class="dashboard-container">
+
+            <!-- TAB 1: OVERVIEW -->
+            <div class="tab-content active" id="tab-overview">
+                <div class="metrics-grid">
+                    <div class="metric-card" onclick="filterOverviewData('csat', this)">
+                        <div class="metric-header">
+                            <span class="metric-title">Индекс удовлетворенности (CSAT)</span>
+                            <i class="fa-solid fa-star metric-icon" style="color: var(--accent-orange);"></i>
+                        </div>
+                        <div class="metric-value" style="color: var(--accent-cyan);">4.85 / 5.0</div>
+                        <div class="rating-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                        </div>
+                        <div class="metric-trend trend-up">
+                            <i class="fa-solid fa-arrow-up"></i> На основе 1 240 оценок
+                        </div>
+                    </div>
+
+                    <div class="metric-card" onclick="filterOverviewData('all', this)">
+                        <div class="metric-header">
+                            <span class="metric-title">Всего запросов 1С</span>
+                            <i class="fa-solid fa-headset metric-icon"></i>
+                        </div>
+                        <div class="metric-value" id="metricTotal">12 840</div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-bar" style="width: 82%;"></div>
+                        </div>
+                        <div class="metric-trend trend-up">
+                            <i class="fa-solid fa-arrow-up"></i> +6.4% за неделю
+                        </div>
+                    </div>
+
+                    <div class="metric-card" onclick="filterOverviewData('ai', this)">
+                        <div class="metric-header">
+                            <span class="metric-title">Авто-решение AI</span>
+                            <i class="fa-solid fa-robot metric-icon" style="color: var(--accent-cyan);"></i>
+                        </div>
+                        <div class="metric-value">78.5%</div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-bar" style="width: 78.5%; background-color: var(--accent-cyan);"></div>
+                        </div>
+                        <div class="metric-trend trend-up">
+                            <i class="fa-solid fa-arrow-up"></i> +3.1% точность
+                        </div>
+                    </div>
+
+                    <div class="metric-card" onclick="filterOverviewData('speed', this)">
+                        <div class="metric-header">
+                            <span class="metric-title">Ср. время ответа агента</span>
+                            <i class="fa-solid fa-stopwatch metric-icon" style="color: var(--accent-red);"></i>
+                        </div>
+                        <div class="metric-value">1.4 сек</div>
+                        <div class="metric-progress">
+                            <div class="metric-progress-bar" style="width: 90%; background-color: var(--accent-red);"></div>
+                        </div>
+                        <div class="metric-trend trend-up">
+                            <i class="fa-solid fa-arrow-down"></i> -0.3 сек оптимизация
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title" id="chartTitle">Нагрузка по обращениям сотрудников 1С (ERP, УТ, ЗУП)</span>
+                            <div class="chart-controls">
+                                <button class="btn-timeframe active" onclick="updateChartTimeframe('week', this)">Неделя</button>
+                                <button class="btn-timeframe" onclick="updateChartTimeframe('month', this)">Месяц</button>
+                            </div>
+                        </div>
+                        <div class="chart-mockup">
+                            <div class="chart-bars" id="chartBars">
+                                <div class="bar-group" onclick="showToast('Пн: 1 420 обращений')"><div class="bar" style="height: 45%;"></div><span class="bar-label">Пн</span></div>
+                                <div class="bar-group" onclick="showToast('Вт: 2 100 обращений')"><div class="bar" style="height: 75%;"></div><span class="bar-label">Вт</span></div>
+                                <div class="bar-group" onclick="showToast('Ср: 2 650 обращений')"><div class="bar" style="height: 90%;"></div><span class="bar-label">Ср</span></div>
+                                <div class="bar-group" onclick="showToast('Чт: 1 800 обращений')"><div class="bar" style="height: 60%;"></div><span class="bar-label">Чт</span></div>
+                                <div class="bar-group" onclick="showToast('Пт: 2 400 обращений')"><div class="bar" style="height: 85%;"></div><span class="bar-label">Пт</span></div>
+                                <div class="bar-group" onclick="showToast('Сб: 850 обращений')"><div class="bar" style="height: 30%;"></div><span class="bar-label">Сб</span></div>
+                                <div class="bar-group" onclick="showToast('Вс: 520 обращений')"><div class="bar" style="height: 20%;"></div><span class="bar-label">Вс</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fa-solid fa-comments-dollar" style="color: var(--accent-orange);"></i> Последние отзывы пользователей 1С</span>
+                        </div>
+                        
+                        <div class="feedback-item">
+                            <div class="feedback-header">
+                                <strong>Ольга К. (Финотдел)</strong>
+                                <span class="rating-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+                            </div>
+                            <div class="feedback-text">"ИИ моментально подсказал как решить проблему с закрытием месяца в 1С:ERP!"</div>
+                        </div>
+
+                        <div class="feedback-item">
+                            <div class="feedback-header">
+                                <strong>Артем Г. (Логистика)</strong>
+                                <span class="rating-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></span>
+                            </div>
+                            <div class="feedback-text">"Быстрая инструкция по печати ТОРГ-12. Очень удобно."</div>
+                        </div>
+
+                        <div class="feedback-item" style="margin-bottom: 0;">
+                            <div class="feedback-header">
+                                <strong>Михаил С. (Склад)</strong>
+                                <span class="rating-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
+                            </div>
+                            <div class="feedback-text">"Понятный ответ по правам доступа ЗУП."</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-grid">
+                    <div class="mini-stat-card" onclick="switchTab('screenshots')">
+                        <div class="mini-info">
+                            <h5>Анализ скриншотов 1С</h5>
+                            <h3>1 840</h3>
+                            <span>Перейти к модулю OCR <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                        <div class="mini-circle">
+                            <i class="fa-solid fa-image"></i>
+                        </div>
+                    </div>
+
+                    <div class="mini-stat-card" onclick="switchTab('kb')">
+                        <div class="mini-info">
+                            <h5>База Знаний Молвест</h5>
+                            <h3>4 файла</h3>
+                            <span>Управление БД <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                        <div class="mini-circle" style="color: var(--accent-orange); border-color: var(--accent-orange); background: rgba(255, 209, 102, 0.1);">
+                            <i class="fa-solid fa-book"></i>
+                        </div>
+                    </div>
+
+                    <div class="mini-stat-card" onclick="switchTab('logs')">
+                        <div class="mini-info">
+                            <h5>Каналы и логи</h5>
+                            <h3>2 активных</h3>
+                            <span>Просмотр логов <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
+                        <div class="mini-circle" style="color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(6, 214, 160, 0.1);">
+                            <i class="fa-solid fa-network-wired"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: LIVE AI MONITORING -->
+            <div class="tab-content" id="tab-live-chats">
+                <div class="chat-container">
+                    <div class="chat-sidebar">
+                        <div style="padding: 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 600; color: var(--accent-cyan); display: flex; align-items: center; justify-content: space-between;">
+                            <span><i class="fa-solid fa-circle-play"></i> Активные AI-диалоги</span>
+                            <span class="badge-status badge-success">3 в сети</span>
+                        </div>
+
+                        <div class="chat-item active" onclick="selectLiveChat(this, 'Ольга Кузнецова (Финотдел)', '1С:ERP 2.5 - Формирование КУДиР', '94%')">
+                            <div class="chat-item-header">
+                                <h4>Ольга Кузнецова</h4>
+                                <span class="chat-time" style="color: var(--accent-cyan);">Печатает...</span>
+                            </div>
+                            <p style="color: var(--accent-cyan);"><i class="fa-solid fa-robot"></i> AI формирует ответ (Уверенность 94%)</p>
+                        </div>
+
+                        <div class="chat-item" onclick="selectLiveChat(this, 'Артем Григорьев (Склад №3)', '1С:УТ - Ошибка печати ТОРГ-12', '88%')">
+                            <div class="chat-item-header">
+                                <h4>Артем Григорьев</h4>
+                                <span class="chat-time">1 мин назад</span>
+                            </div>
+                            <p>Запрос инструкции по выгрузке...</p>
+                        </div>
+                    </div>
+
+                    <div class="chat-main">
+                        <div class="live-observer-banner" id="liveObserverBanner">
+                            <div id="liveBannerText">
+                                <i class="fa-solid fa-eye"></i> <strong>Режим наблюдения:</strong> Вы просматриваете диалог в реальном времени. AI отвечает автоматически.
+                            </div>
+                            <button class="modal-btn" id="takeoverBtn" style="margin:0; padding: 5px 12px; font-size: 11px; background: var(--accent-orange);" onclick="takeoverChat()">
+                                <i class="fa-solid fa-hand"></i> Перехватить диалог
+                            </button>
+                        </div>
+
+                        <div class="chat-header">
+                            <div class="chat-header-info">
+                                <h3 id="liveUserTitle">Ольга Кузнецова (Финотдел)</h3>
+                                <p id="liveTopic"><i class="fa-solid fa-robot"></i> Тема: 1С:ERP 2.5 — Формирование КУДиР • Точность модели: <strong style="color: var(--accent-cyan);" id="liveConfidence">94%</strong></p>
+                            </div>
+                        </div>
+
+                        <div class="chat-history" id="liveChatHistory">
+                            <div class="msg msg-user">
+                                Здравствуйте! При попытке сформировать КУДиР за 3 квартал в 1С:ERP не отображаются записи по авансовым платежам. Как исправить?
+                            </div>
+                            <div class="ai-thinking-indicator">
+                                <i class="fa-solid fa-spinner fa-spin"></i>
+                                <span>AI-Агент анализирует регламенты и базу знаний 1С...</span>
+                            </div>
+                            <div class="msg msg-ai" style="border-left: 3px solid var(--accent-cyan);">
+                                Здравствуйте, Ольга! Выполните операцию "Формирование записей книги доходов и расходов" в разделе Закрытие месяца.
+                            </div>
+                        </div>
+
+                        <!-- INPUT AREA WITH LIVE TAKEOVER SUPPORT -->
+                        <div class="chat-input-area" id="liveChatInputArea" style="opacity: 0.7;">
+                            <input type="text" id="liveChatInputField" placeholder="Режим наблюдения активен..." disabled>
+                            <button id="liveChatSendBtn" disabled style="background: var(--text-muted); cursor: not-allowed;" onclick="sendLiveOperatorMessage()"><i class="fa-solid fa-lock"></i> Наблюдение</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: CHATS (BITRIX24) -->
+            <div class="tab-content" id="tab-chats">
+                <div class="chat-container">
+                    <div class="chat-sidebar">
+                        <div class="chat-item active" onclick="selectChat(this, 'Иван Петров (Бухгалтерия)')">
+                            <div class="chat-item-header">
+                                <h4>Иван Петров (Бухгалтерия)</h4>
+                                <span class="chat-time">10:42</span>
+                            </div>
+                            <p>Ошибка при закрытии месяца в ERP...</p>
+                        </div>
+                    </div>
+                    <div class="chat-main">
+                        <div class="chat-header">
+                            <div class="chat-header-info">
+                                <h3 id="currentChatUser">Иван Петров (Бухгалтерия)</h3>
+                                <p><i class="fa-solid fa-robot"></i> AI-Агент обрабатывает диалог</p>
+                            </div>
+                        </div>
+                        <div class="chat-history" id="chatHistory">
+                            <div class="msg msg-user">Привет! Ошибка распределения затрат в 1С:ERP.</div>
+                            <div class="msg msg-ai">Проверьте отчет "Анализ себестоимости" и статьи калькуляции.</div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chatInput" placeholder="Введите сообщение...">
+                            <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i> Отправить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: TICKETS (REDMINE) -->
+            <div class="tab-content" id="tab-tickets">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Заявки Redmine HelpDesk (Интеграция 1С Молвест)</span>
+                        <button class="modal-btn" onclick="showToast('Синхронизация с Redmine выполнена')"><i class="fa-solid fa-rotate"></i> Синхронизировать</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th># ID</th>
+                                <th>Тема обращения</th>
+                                <th>Инициатор</th>
+                                <th>Конфигурация</th>
+                                <th>Приоритет</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#4821</td>
+                                <td>Ошибка обмена данными с Bitrix24</td>
+                                <td>Дмитрий Ковалев</td>
+                                <td>1С:ERP 2.5</td>
+                                <td><span class="badge-status badge-danger">Высокий</span></td>
+                                <td><span class="badge-status badge-warning">В работе AI</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: SCREENSHOTS ANALYSIS -->
+            <div class="tab-content" id="tab-screenshots">
+                <div class="card" style="padding: 30px;">
+                    <div style="margin-bottom: 25px; text-align: center;">
+                        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">Модуль компьютерного зрения (Анализ ошибок 1С по скриншотам)</h2>
+                        <p style="color: var(--text-muted); font-size: 14px;">Загрузите скриншот окна ошибки 1С для распознавания.</p>
+                    </div>
+                    <div class="upload-zone" onclick="triggerFileInput('screenshotInput')">
+                        <i class="fa-regular fa-image"></i>
+                        <h3>Перетащите файл скриншота сюда</h3>
+                        <button class="modal-btn">Выберите файл на ПК</button>
+                        <input type="file" id="screenshotInput" hidden accept="image/*" onchange="handleScreenshotUpload(this)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: KNOWLEDGE BASE -->
+            <div class="tab-content" id="tab-kb">
+                <div class="card" style="padding: 30px;">
+                    <div class="card-header" style="margin-bottom: 20px;">
+                        <h2 style="font-size: 20px; font-weight: 600;">База знаний 1С АО "Молвест"</h2>
+                        <button class="modal-btn" onclick="triggerFileInput('kbFileInput')"><i class="fa-solid fa-plus"></i> Загрузить новый файл</button>
+                    </div>
+
+                    <div class="upload-zone" onclick="triggerFileInput('kbFileInput')" style="padding: 25px; margin-bottom: 25px;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h3>Загрузить файлы для обучения ИИ</h3>
+                        <p style="font-size: 12px; color: var(--text-muted);">Поддерживаемые форматы: PDF, DOCX, TXT, DB, MD</p>
+                        <input type="file" id="kbFileInput" hidden accept=".pdf,.docx,.txt,.md,.db" onchange="handleKbUpload(this)">
+                    </div>
+
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-folder-open" style="color: var(--accent-orange);"></i>
+                        <span>Подключенные файлы базы знаний (4)</span>
+                    </h3>
+
+                    <div class="file-list" id="kbFileList">
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <div>
+                                    <div>Инструкция_по_закрытию_месяца_ERP.pdf</div>
+                                    <div class="file-meta">Раздел 1С:ERP 2.5 • 2.4 МБ • Статус: Индексирован</div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <span class="badge-status badge-success" style="margin-right: 5px;">Активен</span>
+                                <button class="btn-action-icon" title="Переиндексировать" onclick="showToast('Файл отправлен на повторную индексацию')"><i class="fa-solid fa-rotate"></i></button>
+                                <button class="btn-action-icon danger" title="Удалить файл" onclick="removeKbFile(this)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fa-solid fa-file-word" style="color: var(--accent-blue);"></i>
+                                <div>
+                                    <div>Регламент_инвентаризации_Склад.docx</div>
+                                    <div class="file-meta">Раздел 1С:УТ • 1.1 МБ • Статус: Индексирован</div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <span class="badge-status badge-success" style="margin-right: 5px;">Активен</span>
+                                <button class="btn-action-icon" title="Переиндексировать" onclick="showToast('Файл отправлен на повторную индексацию')"><i class="fa-solid fa-rotate"></i></button>
+                                <button class="btn-action-icon danger" title="Удалить файл" onclick="removeKbFile(this)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fa-solid fa-file-lines" style="color: var(--accent-cyan);"></i>
+                                <div>
+                                    <div>Настройка_прав_пользователей_1С_ЗУП.txt</div>
+                                    <div class="file-meta">Раздел 1С:ЗУП 3.1 • 450 КБ • Статус: Индексирован</div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <span class="badge-status badge-success" style="margin-right: 5px;">Активен</span>
+                                <button class="btn-action-icon" title="Переиндексировать" onclick="showToast('Файл отправлен на повторную индексацию')"><i class="fa-solid fa-rotate"></i></button>
+                                <button class="btn-action-icon danger" title="Удалить файл" onclick="removeKbFile(this)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="file-item">
+                            <div class="file-info">
+                                <i class="fa-solid fa-server" style="color: var(--accent-orange);"></i>
+                                <div>
+                                    <div>База_типовых_ошибок_1С_Молвест_2026.db</div>
+                                    <div class="file-meta">Системный реестр • 12.8 МБ • Статус: Индексирован</div>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <span class="badge-status badge-success" style="margin-right: 5px;">Активен</span>
+                                <button class="btn-action-icon" title="Переиндексировать" onclick="showToast('Файл отправлен на повторную индексацию')"><i class="fa-solid fa-rotate"></i></button>
+                                <button class="btn-action-icon danger" title="Удалить файл" onclick="removeKbFile(this)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: USERS PERMISSIONS -->
+            <div class="tab-content" id="tab-users">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title"><i class="fa-solid fa-users-gear" style="color: var(--accent-blue);"></i> Права и роли пользователей 1С AI-Support</span>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Управление доступом сотрудников к системам и базам данных АО "Молвест"</p>
+                        </div>
+                        <button class="modal-btn" onclick="openAddUserModal()"><i class="fa-solid fa-user-plus"></i> Добавить пользователя</button>
+                    </div>
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Сотрудник / Email</th>
+                                <th>Департамент</th>
+                                <th>Роль в AI-Support</th>
+                                <th>Доступ к базам 1С</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Елена Васильева</strong>
+                                    <div style="font-size: 11px; color: var(--text-muted);">e.vasilyeva@molvest.ru</div>
+                                </td>
+                                <td>Департамент IT и автоматизации</td>
+                                <td><span class="badge-status badge-success">Суперадминистратор</span></td>
+                                <td><span class="badge-status badge-blue">ERP</span> <span class="badge-status badge-blue">ЗУП</span> <span class="badge-status badge-blue">УТ</span> <span class="badge-status badge-blue">БП</span></td>
+                                <td><span class="badge-status badge-success">Активен</span></td>
+                                <td>
+                                    <button class="btn-action-icon" title="Редактировать" onclick="editUserRow(this)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button class="btn-action-icon danger" title="Заблокировать" onclick="deleteUserRow(this)"><i class="fa-solid fa-user-xmark"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Михаил Сергеев</strong>
+                                    <div style="font-size: 11px; color: var(--text-muted);">m.sergeev@molvest.ru</div>
+                                </td>
+                                <td>Департамент логистики</td>
+                                <td><span class="badge-status badge-warning">Оператор ТП (1С:УТ)</span></td>
+                                <td><span class="badge-status badge-blue">1С:Управление торговлей</span></td>
+                                <td><span class="badge-status badge-success">Активен</span></td>
+                                <td>
+                                    <button class="btn-action-icon" title="Редактировать" onclick="editUserRow(this)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button class="btn-action-icon danger" title="Заблокировать" onclick="deleteUserRow(this)"><i class="fa-solid fa-user-xmark"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Ольга Кузнецова</strong>
+                                    <div style="font-size: 11px; color: var(--text-muted);">o.kuznetsova@molvest.ru</div>
+                                </td>
+                                <td>Главная бухгалтерия</td>
+                                <td><span class="badge-status badge-warning">Аналитик Базы Знаний</span></td>
+                                <td><span class="badge-status badge-blue">1С:ERP</span> <span class="badge-status badge-blue">1С:Бухгалтерия</span></td>
+                                <td><span class="badge-status badge-success">Активен</span></td>
+                                <td>
+                                    <button class="btn-action-icon" title="Редактировать" onclick="editUserRow(this)"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button class="btn-action-icon danger" title="Заблокировать" onclick="deleteUserRow(this)"><i class="fa-solid fa-user-xmark"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 7: AGENT SETTINGS -->
+            <div class="tab-content" id="tab-settings">
+                <div class="settings-grid">
+
+                    <!-- CARD 1: ИДЕНТИЧНОСТЬ И ПРОФИЛЬ -->
+                    <div class="setting-card">
+                        <div class="setting-card-header">
+                            <div class="setting-card-title">
+                                <i class="fa-solid fa-robot"></i>
+                                <span>Профиль и поведение AI-агента</span>
+                            </div>
+                            <span class="badge-status badge-success">Онлайн</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Имя виртуального консультанта</label>
+                            <input type="text" class="form-control" value="AI-Помощник Молвест 1С">
+                        </div>
+                        <div class="form-group">
+                            <label>Стиль ответов (Тон общения)</label>
+                            <select class="form-control">
+                                <option selected>Официально-деловой (Корпоративный)</option>
+                                <option>Дружелюбный и сжатый</option>
+                                <option>Строго технический (Инструкции)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Детализация ответа</label>
+                            <select class="form-control">
+                                <option>Краткий ответ + меню 1С</option>
+                                <option selected>Развернутый с пошаговой инструкцией</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: ПОРОГ И УВЕРЕННОСТЬ -->
+                    <div class="setting-card">
+                        <div class="setting-card-header">
+                            <div class="setting-card-title">
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>Точность и порог автоответа</span>
+                            </div>
+                            <span class="confidence-val-badge" id="confidenceValBadge">70%</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-muted);">
+                            Минимальный уровень уверенности нейросети для самостоятельного ответа без оператора.
+                        </p>
+                        <div class="confidence-slider-box">
+                            <div class="slider-header-info">
+                                <span style="font-size: 12px; font-weight: 600;" id="sliderStatusText">Режим: Сбалансированный авто-ответ</span>
+                            </div>
+                            <input type="range" class="range-slider-styled" id="confidenceRange" min="10" max="95" value="70" step="5" oninput="updateConfidenceSlider(this.value)">
+                            <div class="slider-scale-labels">
+                                <span>10% (Риск)</span>
+                                <span>70% (Норма)</span>
+                                <span>95% (Строго)</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 5px;">
+                            <label>При низкой уверенности (&lt; порога):</label>
+                            <select class="form-control">
+                                <option selected>Автоматическая эскалация в Redmine / Bitrix24</option>
+                                <option>Запросить уточнение у сотрудника</option>
+                                <option>Перевести на живого оператора в чат</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: МОДУЛИ БАЗЫ ЗНАНИЙ -->
+                    <div class="setting-card settings-full-width">
+                        <div class="setting-card-header">
+                            <div class="setting-card-title">
+                                <i class="fa-solid fa-database"></i>
+                                <span>Активные справочные базы и модули знания 1С</span>
+                            </div>
+                            <button class="btn-timeframe active" onclick="switchTab('kb')"><i class="fa-solid fa-plus"></i> Управление файлами</button>
+                        </div>
+                        <div class="kb-modules-grid">
+                            <div class="module-item-checkbox">
+                                <div class="module-left">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <div class="module-info-text">
+                                        <strong>Инструкция_по_закрытию_месяца_ERP.pdf</strong>
+                                        <span>Модуль 1С:ERP 2.5 • Индексирован</span>
+                                    </div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked onchange="showToast('Статус модуля обновлен')">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+
+                            <div class="module-item-checkbox">
+                                <div class="module-left">
+                                    <i class="fa-solid fa-file-word" style="color: var(--accent-blue);"></i>
+                                    <div class="module-info-text">
+                                        <strong>Регламент_инвентаризации_Склад.docx</strong>
+                                        <span>Модуль 1С:УТ 11 • Индексирован</span>
+                                    </div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked onchange="showToast('Статус модуля обновлен')">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+
+                            <div class="module-item-checkbox">
+                                <div class="module-left">
+                                    <i class="fa-solid fa-file-lines" style="color: var(--accent-cyan);"></i>
+                                    <div class="module-info-text">
+                                        <strong>Настройка_прав_пользователей_1С_ЗУП.txt</strong>
+                                        <span>Модуль 1С:ЗУП 3.1 • Индексирован</span>
+                                    </div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked onchange="showToast('Статус модуля обновлен')">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+
+                            <div class="module-item-checkbox">
+                                <div class="module-left">
+                                    <i class="fa-solid fa-server" style="color: var(--accent-orange);"></i>
+                                    <div class="module-info-text">
+                                        <strong>База_типовых_ошибок_1С_Молвест_2026.db</strong>
+                                        <span>Системный реестр • Индексирован</span>
+                                    </div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked onchange="showToast('Статус модуля обновлен')">
+                                    <span class="slider-round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 4: CИСТЕМНЫЙ ПРОМПТ -->
+                    <div class="setting-card settings-full-width">
+                        <div class="setting-card-header">
+                            <div class="setting-card-title">
+                                <i class="fa-solid fa-terminal"></i>
+                                <span>Системный промпт (System Instruction)</span>
+                            </div>
+                            <span style="font-size: 11px; color: var(--text-muted);">Версия ядра: 2.4-PROD</span>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="form-control" id="systemPromptInput" rows="10" style="font-family: monospace; font-size: 12px; line-height: 1.5; background: var(--bg-main);">[РОЛЬ И КОНТЕКСТ]
+Вы — официальный виртуальный AI-инженер технической поддержки 1С в АО "Молвест".
+Ваша цель — быстро, точно и вежливо помогать сотрудникам компании с решением вопросов по конфигурациям 1С.
+
+[ПОДДКЛЮЧЕННЫЕ БАЗЫ ДАННЫХ И МОДУЛИ]
+1. 1С:ERP 2.5 (Производство, Закрытие месяца, Регламентированный учет)
+2. 1С:ЗУП 3.1 (Расчет зарплаты, Кадровый учет, Справки)
+3. 1С:Управление торговлей 11 (Склад, Логистика, ТОРГ-12, Заказы)
+
+[ПРАВИЛА ОТВЕТА И ТОН]
+- Строго придерживайтесь официального делового стиля АО "Молвест".
+- Ответы должны быть пошаговыми и содержать конкретные наименования меню 1С.
+
+[КРИТЕРИИ ЭСКАЛАЦИИ]
+Если уверенность модели ниже порога (70%), создайте тикет в Redmine.</textarea>
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button class="modal-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);" onclick="showToast('Сброшено к умолчаниям')">Сбросить</button>
+                            <button class="modal-btn" onclick="saveAgentSettings()"><i class="fa-solid fa-floppy-disk"></i> Сохранить настройки агента</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 8: LOGS & REPORTS -->
+            <div class="tab-content" id="tab-logs">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Журнал событий и логи решений AI</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="modal-btn" style="padding: 6px 12px; font-size: 12px; background: var(--accent-cyan); color: #000;" onclick="saveLogsHistory()"><i class="fa-solid fa-download"></i> Сохранить историю логов</button>
+                            <button class="modal-btn" style="padding: 6px 12px; font-size: 12px;" onclick="exportLogsCSV()"><i class="fa-solid fa-file-export"></i> Экспорт CSV</button>
+                        </div>
+                    </div>
+                    <table class="data-table" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>Время</th>
+                                <th>Канал</th>
+                                <th>Запрос пользователя</th>
+                                <th>Уверенность ИИ</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>06.09.2026 18:42:10</td>
+                                <td>Bitrix24</td>
+                                <td>"Ошибка закрытия месяца в ERP..."</td>
+                                <td><strong>88%</strong></td>
+                                <td><span class="badge-status badge-success">Успешно</span></td>
+                            </tr>
+                            <tr>
+                                <td>06.09.2026 18:35:12</td>
+                                <td>Redmine</td>
+                                <td>"Не печатается ТОРГ-12 в 1С:УТ"</td>
+                                <td><strong>92%</strong></td>
+                                <td><span class="badge-status badge-success">Успешно</span></td>
+                            </tr>
+                            <tr>
+                                <td>06.09.2026 18:20:05</td>
+                                <td>Bitrix24</td>
+                                <td>"Расчет отпускных в ЗУП 3.1"</td>
+                                <td><strong>78%</strong></td>
+                                <td><span class="badge-status badge-success">Успешно</span></td>
+                            </tr>
+                            <tr>
+                                <td>06.09.2026 17:55:40</td>
+                                <td>Redmine HelpDesk</td>
+                                <td>"Проблема интеграции с 1С:ERP"</td>
+                                <td><strong>38%</strong></td>
+                                <td><span class="badge-status badge-warning">Эскалировано</span></td>
+                            </tr>
+                            <tr>
+                                <td>06.09.2026 17:12:19</td>
+                                <td>Bitrix24</td>
+                                <td>"Формирование КУДиР за 3 квартал"</td>
+                                <td><strong>94%</strong></td>
+                                <td><span class="badge-status badge-success">Успешно</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ПРОФИЛЯ С РАСШИРЕННЫМИ ДАННЫМИ -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="modal-header-title">
+                <i class="fa-solid fa-user-pen"></i>
+                <h3>Редактирование профиля</h3>
+            </div>
+            
+            <div class="form-group" style="align-items: center; text-align: center; margin-bottom: 15px;">
+                <img id="avatarPreviewModal" src="image_079f1b.jpg" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); margin-bottom: 10px;">
+                <label style="cursor: pointer; color: var(--accent-blue); font-size: 13px;" onclick="triggerFileInput('avatarFileInput')">
+                    <i class="fa-solid fa-camera"></i> Изменить аватарку
+                </label>
+                <input type="file" id="avatarFileInput" hidden accept="image/*" onchange="handleAvatarUpload(this)">
+            </div>
+
+            <div class="form-group">
+                <label>Имя профиля / Организация *</label>
+                <input type="text" class="form-control" id="editProfileName" value="мой аккаунт">
+            </div>
+
+            <div class="form-group">
+                <label>Должность / Роль *</label>
+                <input type="text" class="form-control" id="editProfileRole" value="Администратор IT-системы">
+            </div>
+
+            <div class="form-group">
+                <label>Департамент / Подразделение</label>
+                <input type="text" class="form-control" id="editProfileDept" value="Департамент IT и автоматизации">
+            </div>
+
+            <div class="form-group">
+                <label>Рабочий телефон / Внутренний номер</label>
+                <input type="text" class="form-control" id="editProfilePhone" value="+7 (473) 200-00-00 (доб. 142)">
+            </div>
+
+            <div class="form-group">
+                <label>О себе (Расширенная информация)</label>
+                <textarea class="form-control" id="editProfileAbout" rows="3" placeholder="Напишите подробные данные о себе, компетенциях, зонах ответственности...">Отвечаю за бесперебойную работу контуров 1С (ERP, ЗУП, УТ) в АО «Молвест», настройку интеграций и мониторинг AI-агентов техподдержки.</textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="modal-btn" style="flex: 1;" onclick="saveProfileChanges()">Сохранить изменения</button>
+                <button class="modal-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);" onclick="closeProfileModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER MODAL (ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ ПОЛЬЗОВАТЕЛЯ 1С) -->
+    <div class="modal-overlay" id="userRoleModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeUserModal()"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="modal-header-title">
+                <i class="fa-solid fa-user-plus" id="modalUserIcon"></i>
+                <h3 id="modalUserTitle">Добавление нового пользователя</h3>
+            </div>
+            
+            <div class="form-group">
+                <label>ФИО Сотрудника *</label>
+                <input type="text" class="form-control" id="inputUserName" placeholder="Например: Константинов Сергей Петрович">
+            </div>
+
+            <div class="form-group">
+                <label>Рабочая почта (Email) *</label>
+                <input type="email" class="form-control" id="inputUserEmail" placeholder="s.konstantinov@molvest.ru">
+            </div>
+
+            <div class="form-group">
+                <label>Департамент / Подразделение *</label>
+                <select class="form-control" id="inputUserDept">
+                    <option>Департамент IT и автоматизации</option>
+                    <option>Главная бухгалтерия</option>
+                    <option>Департамент логистики и склада</option>
+                    <option>Отдел кадров (HR)</option>
+                    <option>Финансово-экономический отдел</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Роль в 1С AI-Support *</label>
+                <select class="form-control" id="inputUserRole">
+                    <option>Инженер техподдержки 1С</option>
+                    <option>Оператор ТП (1С:УТ)</option>
+                    <option>Аналитик Базы Знаний</option>
+                    <option>Суперадминистратор</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Доступ к базам данных 1С *</label>
+                <div class="checkbox-group-grid">
+                    <label><input type="checkbox" id="dbErp" checked> 1С:ERP Управление</label>
+                    <label><input type="checkbox" id="dbZup" checked> 1С:ЗУП (Зарплата)</label>
+                    <label><input type="checkbox" id="dbUt" checked> 1С:Управление торговлей</label>
+                    <label><input type="checkbox" id="dbBp"> 1С:Бухгалтерия (БП)</label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="modal-btn" style="flex: 1;" onclick="saveUserForm()">Сохранить пользователя</button>
+                <button class="modal-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);" onclick="closeUserModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION POPUP -->
+    <div class="toast" id="toastNotification">
+        <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan);"></i>
+        <span id="toastText">Действие выполнено</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            if (document.body.classList.contains('light-theme')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+
+        const navItems = document.querySelectorAll('.nav-menu li[data-tab]');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function switchTab(tabId) {
+            navItems.forEach(nav => {
+                if (nav.getAttribute('data-tab') === tabId) {
+                    nav.classList.add('active');
+                } else {
+                    nav.classList.remove('active');
+                }
+            });
+
+            tabContents.forEach(tab => {
+                if (tab.id === 'tab-' + tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetTab = item.getAttribute('data-tab');
+                switchTab(targetTab);
+            });
+        });
+
+        // Переключение выпадающего списка уведомлений
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationPopup = document.getElementById('notificationPopup');
+        
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationPopup.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notificationPopup.contains(e.target) && e.target !== notificationBtn) {
+                notificationPopup.classList.remove('active');
+            }
+        });
+
+        document.getElementById('clearNotifications').addEventListener('click', () => {
+            document.querySelector('.badge-dot').style.display = 'none';
+            showToast('Все уведомления помечены как прочитанные');
+            notificationPopup.classList.remove('active');
+        });
+
+        /* РЕДАКТИРОВАНИЕ ПРОФИЛЯ */
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        function handleAvatarUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreviewModal').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveProfileChanges() {
+            const name = document.getElementById('editProfileName').value;
+            const role = document.getElementById('editProfileRole').value;
+            const avatarSrc = document.getElementById('avatarPreviewModal').src;
+
+            document.getElementById('userProfileName').innerText = name;
+            document.getElementById('userProfileRole').innerText = role;
+            document.getElementById('userAvatarImg').src = avatarSrc;
+
+            closeProfileModal();
+            showToast('Профиль успешно обновлен!');
+        }
+
+        /* СОХРАНЕНИЕ И ЭКСПОРТ ЛОГОВ */
+        function saveLogsHistory() {
+            const table = document.getElementById('logsTable');
+            let rows = [];
+            for (let i = 0; i < table.rows.length; i++) {
+                let row = [], cols = table.rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length; j++) {
+                    row.push(cols[j].innerText.replace(/\n/g, ' '));
+                }
+                rows.push(row.join('\t'));
+            }
+            const logsText = rows.join('\n');
+            const blob = new Blob([logsText], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `logs_history_${new Date().toISOString().slice(0,10)}.txt`;
+            link.click();
+            showToast('История логов успешно сохранена в файл!');
+        }
+
+        function exportLogsCSV() {
+            const table = document.getElementById('logsTable');
+            let rows = [];
+            for (let i = 0; i < table.rows.length; i++) {
+                let row = [], cols = table.rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length; j++) {
+                    row.push('"' + cols[j].innerText.replace(/"/g, '""').replace(/\n/g, ' ') + '"');
+                }
+                rows.push(row.join(','));
+            }
+            const csvContent = '\uFEFF' + rows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `logs_report_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showToast('Отчет экспортирован в CSV!');
+        }
+
+        function updateConfidenceSlider(val) {
+            document.getElementById('confidenceValBadge').innerText = val + '%';
+            const statusText = document.getElementById('sliderStatusText');
+            
+            if (val < 40) {
+                statusText.innerText = 'Режим: Низкий порог (ИИ отвечает часто)';
+                statusText.style.color = 'var(--accent-red)';
+            } else if (val <= 75) {
+                statusText.innerText = `Режим: Сбалансированный авто-ответ (${val}%+)`;
+                statusText.style.color = 'var(--accent-cyan)';
+            } else {
+                statusText.innerText = `Режим: Строгий (Уверенность > ${val}%)`;
+                statusText.style.color = 'var(--accent-orange)';
+            }
+        }
+
+        function saveAgentSettings() {
+            showToast('Настройки агента АО "Молвест" успешно сохранены');
+        }
+
+        /* ПОЛЬЗОВАТЕЛИ И МОДАЛЬНОЕ ОКНО */
+        let currentEditRow = null;
+
+        function openAddUserModal() {
+            currentEditRow = null;
+            document.getElementById('modalUserTitle').innerText = 'Добавление нового пользователя';
+            document.getElementById('inputUserName').value = '';
+            document.getElementById('inputUserEmail').value = '';
+            document.getElementById('userRoleModal').classList.add('active');
+        }
+
+        function editUserRow(btn) {
+            currentEditRow = btn.closest('tr');
+            const name = currentEditRow.cells[0].querySelector('strong').innerText;
+            const email = currentEditRow.cells[0].querySelector('div').innerText;
+            const dept = currentEditRow.cells[1].innerText;
+
+            document.getElementById('modalUserTitle').innerText = 'Редактирование профиля';
+            document.getElementById('inputUserName').value = name;
+            document.getElementById('inputUserEmail').value = email;
+            document.getElementById('inputUserDept').value = dept;
+            document.getElementById('userRoleModal').classList.add('active');
+        }
+
+        function saveUserForm() {
+            const name = document.getElementById('inputUserName').value.trim();
+            const email = document.getElementById('inputUserEmail').value.trim();
+            const dept = document.getElementById('inputUserDept').value;
+            const role = document.getElementById('inputUserRole').value;
+
+            if (!name || !email) {
+                showToast('Заполните обязательные поля!');
+                return;
+            }
+
+            let dbs = [];
+            if(document.getElementById('dbErp').checked) dbs.push('<span class="badge-status badge-blue">ERP</span>');
+            if(document.getElementById('dbZup').checked) dbs.push('<span class="badge-status badge-blue">ЗУП</span>');
+            if(document.getElementById('dbUt').checked) dbs.push('<span class="badge-status badge-blue">УТ</span>');
+            if(document.getElementById('dbBp').checked) dbs.push('<span class="badge-status badge-blue">БП</span>');
+            const dbHTML = dbs.join(' ');
+
+            if (currentEditRow) {
+                currentEditRow.cells[0].innerHTML = `<strong>${name}</strong><div style="font-size: 11px; color: var(--text-muted);">${email}</div>`;
+                currentEditRow.cells[1].innerText = dept;
+                currentEditRow.cells[2].innerHTML = `<span class="badge-status badge-warning">${role}</span>`;
+                currentEditRow.cells[3].innerHTML = dbHTML;
+                showToast('Данные пользователя обновлены');
+            } else {
+                const table = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
+                const newRow = table.insertRow(0);
+                newRow.innerHTML = `
+                    <td><strong>${name}</strong><div style="font-size: 11px; color: var(--text-muted);">${email}</div></td>
+                    <td>${dept}</td>
+                    <td><span class="badge-status badge-warning">${role}</span></td>
+                    <td>${dbHTML}</td>
+                    <td><span class="badge-status badge-success">Активен</span></td>
+                    <td>
+                        <button class="btn-action-icon" title="Редактировать" onclick="editUserRow(this)"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-action-icon danger" title="Заблокировать" onclick="deleteUserRow(this)"><i class="fa-solid fa-user-xmark"></i></button>
+                    </td>
+                `;
+                showToast('Новый пользователь успешно добавлен!');
+            }
+
+            closeUserModal();
+        }
+
+        function deleteUserRow(btn) {
+            if (confirm('Вы уверены, что хотите деактивировать доступ пользователя?')) {
+                const row = btn.closest('tr');
+                row.remove();
+                showToast('Пользователь деактивирован');
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userRoleModal').classList.remove('active');
+        }
+
+        function removeKbFile(btn) {
+            const item = btn.closest('.file-item');
+            if (item) {
+                item.remove();
+                showToast('Файл удален из базы знаний');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const toastText = document.getElementById('toastText');
+            toastText.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function filterOverviewData(type, element) {
+            document.querySelectorAll('.metric-card').forEach(c => c.classList.remove('active-filter'));
+            element.classList.add('active-filter');
+            showToast('Фильтр метрик обновлен');
+        }
+
+        function updateChartTimeframe(tf, btn) {
+            document.querySelectorAll('.btn-timeframe').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            showToast('Интервал обновлен');
+        }
+
+        function triggerFileInput(id) { document.getElementById(id).click(); }
+
+        function handleKbUpload(input) {
+            if (input.files && input.files[0]) {
+                showToast(`Файл "${input.files[0].name}" отправлен на индексацию`);
+            }
+        }
+
+        function handleScreenshotUpload(input) {
+            if (input.files && input.files[0]) {
+                showToast(`Скриншот "${input.files[0].name}" проанализирован.`);
+            }
+        }
+
+        /* LIVE CHAT TAKEOVER & AI ACCOUNTING LOGIC */
+        let isChatTakenOver = false;
+
+        function takeoverChat() {
+            isChatTakenOver = true;
+            
+            // Update banner appearance & message
+            const banner = document.getElementById('liveObserverBanner');
+            banner.style.background = 'rgba(255, 209, 102, 0.12)';
+            banner.style.borderColor = 'var(--accent-orange)';
+            document.getElementById('liveBannerText').innerHTML = `
+                <i class="fa-solid fa-headset" style="color: var(--accent-orange);"></i> <strong>Ручное управление:</strong> Диалог перехвачен. <strong>AI учитывает ответы оператора</strong> и подстраивает подсказки.
+            `;
+            
+            const takeoverBtn = document.getElementById('takeoverBtn');
+            takeoverBtn.innerHTML = '<i class="fa-solid fa-robot"></i> Вернуть AI';
+            takeoverBtn.style.background = 'var(--accent-blue)';
+            takeoverBtn.setAttribute('onclick', 'returnChatToAI()');
+
+            // Enable input area in live chat
+            const inputArea = document.getElementById('liveChatInputArea');
+            inputArea.style.opacity = '1';
+            const inputField = document.getElementById('liveChatInputField');
+            inputField.disabled = false;
+            inputField.placeholder = 'Введите ответ оператора клиенту...';
+            
+            const sendBtn = document.getElementById('liveChatSendBtn');
+            sendBtn.disabled = false;
+            sendBtn.style.background = 'var(--accent-blue)';
+            sendBtn.style.cursor = 'pointer';
+            sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Отправить';
+
+            // AI reports about takeover in the chat history
+            const history = document.getElementById('liveChatHistory');
+            const aiNotice = document.createElement('div');
+            aiNotice.className = 'msg msg-ai';
+            aiNotice.style.borderLeft = '3px solid var(--accent-orange)';
+            aiNotice.innerHTML = '<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> Диалог успешно перехвачен оператором. Я перешел в режим ассистента: учитываю ваши ответы, фиксирую историю взаимодействия и продолжаю фоновый мониторинг.';
+            history.appendChild(aiNotice);
+            history.scrollTop = history.scrollHeight;
+
+            showToast('Диалог перехвачен! AI учитывает ваши ответы.');
+        }
+
+        function returnChatToAI() {
+            isChatTakenOver = false;
+            
+            const banner = document.getElementById('liveObserverBanner');
+            banner.style.background = 'rgba(6, 214, 160, 0.08)';
+            banner.style.borderColor = 'var(--accent-cyan)';
+            document.getElementById('liveBannerText').innerHTML = `
+                <i class="fa-solid fa-eye"></i> <strong>Режим наблюдения:</strong> Вы просматриваете диалог в реальном времени. AI отвечает автоматически.
+            `;
+            
+            const takeoverBtn = document.getElementById('takeoverBtn');
+            takeoverBtn.innerHTML = '<i class="fa-solid fa-hand"></i> Перехватить диалог';
+            takeoverBtn.style.background = 'var(--accent-orange)';
+            takeoverBtn.setAttribute('onclick', 'takeoverChat()');
+
+            const inputArea = document.getElementById('liveChatInputArea');
+            inputArea.style.opacity = '0.7';
+            const inputField = document.getElementById('liveChatInputField');
+            inputField.disabled = true;
+            inputField.placeholder = 'Режим наблюдения активен...';
+            
+            const sendBtn = document.getElementById('liveChatSendBtn');
+            sendBtn.disabled = true;
+            sendBtn.style.background = 'var(--text-muted)';
+            sendBtn.style.cursor = 'not-allowed';
+            sendBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Наблюдение';
+
+            const history = document.getElementById('liveChatHistory');
+            const aiNotice = document.createElement('div');
+            aiNotice.className = 'msg msg-ai';
+            aiNotice.style.borderLeft = '3px solid var(--accent-cyan)';
+            aiNotice.innerHTML = '<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> Автоматическое управление возобновлено.';
+            history.appendChild(aiNotice);
+            history.scrollTop = history.scrollHeight;
+
+            showToast('Управление возвращено AI-агенту');
+        }
+
+        function sendLiveOperatorMessage() {
+            const inputField = document.getElementById('liveChatInputField');
+            const text = inputField.value.trim();
+            if (!text) return;
+
+            const history = document.getElementById('liveChatHistory');
+
+            // Render operator message
+            const opMsg = document.createElement('div');
+            opMsg.className = 'msg msg-user';
+            opMsg.style.background = 'var(--accent-orange)';
+            opMsg.innerHTML = `<strong>Оператор:</strong> ${text}`;
+            history.appendChild(opMsg);
+
+            inputField.value = '';
+            history.scrollTop = history.scrollHeight;
+
+            // AI processes the operator's response and reports back
+            setTimeout(() => {
+                const aiResponse = document.createElement('div');
+                aiResponse.className = 'msg msg-ai';
+                aiResponse.style.borderLeft = '3px solid var(--accent-cyan)';
+                aiResponse.innerHTML = `<i class="fa-solid fa-robot"></i> <strong>AI-Агент учел ваш ответ:</strong> Сообщение зафиксировано в контексте сессии, база знаний дополнена, клиент уведомлен.`;
+                history.appendChild(aiResponse);
+                history.scrollTop = history.scrollHeight;
+            }, 800);
+        }
+    </script>
+</body>
+</html>
