@@ -1,0 +1,147 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f9;
+    color: #1a202c;
+}
+
+header {
+    background: linear-gradient(135deg, #1a202c, #2d3748);
+    color: #fff;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 24px;
+}
+
+header p {
+    opacity: 0.85;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+    font-size: 18px;
+    color: #2b6cb0;
+    margin-bottom: 12px;
+}
+
+.card h3 {
+    font-size: 14px;
+    color: #4a5568;
+    margin: 14px 0 8px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.controls-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input,
+textarea {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+input {
+    flex: 1 1 160px;
+    min-width: 120px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+}
+
+input[type="file"] {
+    flex: 1 1 240px;
+}
+
+input[type="number"] {
+    flex: 0 1 90px;
+}
+
+button {
+    padding: 8px 14px;
+    background: #2b6cb0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+button:hover {
+    background: #2c5282;
+}
+
+.result {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 40px;
+}
+
+.result.ok {
+    border-color: #9ae6b4;
+    background: #f0fff4;
+    color: #22543d;
+}
+
+.result.error {
+    border-color: #feb2b2;
+    background: #fff5f5;
+    color: #742a2a;
+}
+
+.result.pending {
+    border-color: #bee3f8;
+    background: #ebf8ff;
+    color: #2a4365;
+}
+
+.result.not-impl {
+    border-color: #f6e05e;
+    background: #fffff0;
+    color: #744210;
+}

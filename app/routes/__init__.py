@@ -16,9 +16,9 @@ def register_blueprints(app: Flask) -> None:
 
     from pydantic import ValidationError
 
-    from app.routes import admin, chat, integrations, kb
+    from app.routes import admin, chat, dev, integrations, kb
 
-    for bp in (chat.bp, kb.bp, admin.bp, integrations.bp):
+    for bp in (chat.bp, kb.bp, admin.bp, integrations.bp, dev.bp):
         app.register_blueprint(bp)
 
     @app.route("/")
