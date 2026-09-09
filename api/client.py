@@ -1,6 +1,4 @@
 from os import environ
-from typing import Any
-
 from dotenv import load_dotenv
 from requests import Response
 import api.web
@@ -8,24 +6,49 @@ from api.auth import ApiToken
 import json
 from api.context import *
 from api.context import Context
+from api.files import FileHandler
+import mimetypes
 
 
 class ApiClient:
     auth_key: str
     token: ApiToken
+    file_handler: FileHandler
 
     def __init__(self, auth_key):
         self.auth_key = auth_key
         self.token = ApiToken()
+        self.file_handler = FileHandler()
         self.update_token()
 
     def update_token(self):
         self.token.update(self.auth_key)
 
+    def upload_file(self, filename):
+        self.update_token()
+        session = api.web.get_empty_session()
+        request = api.web.get_model_attachment_template()
+        request.headers['Authorization'] = f'Bearer {self.token}'
+        with open(filename, 'rb') as f:
+            file_content = f.read()
+            mime_type, _ = mimetypes.guess_type(filename)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+            request.files = {
+                'file': (filename, file_content, mime_type),
+                'purpose': (None, 'general')
+            }
+        prepared = session.prepare_request(request)
+        response = session.send(prepared)
+        if response.status_code != 200:
+            return f'Ошибка :(\n{response.status_code} {response.json()}'
+        self.file_handler.add_file(json.loads(str(response.text))['id'])
+        return response
+
     def generate_response(self, context: Context) -> Response:
         self.update_token()
         session = api.web.get_empty_session()
-        request = session.prepare_request(api.web.get_model_query_template())
+        request = api.web.get_model_query_template()
         request.headers['Authorization'] = f'Bearer {self.token}'
         data = {
             'model': 'Gigachat-3-Pro',
@@ -34,51 +57,51 @@ class ApiClient:
             'response_format': context.response_format,
             'temperature': 0.1
         }
-        request.body = json.dumps(data)
-        request.headers['Content-Length'] = str(len(request.body))
-        response = session.send(request)
+        request.json = data
+        prepared = session.prepare_request(request)
+        response = session.send(prepared)
         return response
 
     def generate_answer(self, prompt, context=None) -> tuple[Context, Response]:
         if context is None:
             context = get_empty_context()
+        if self.file_handler.is_empty():
+            context.add_message('user', prompt)
+        else:
+            context.add_message('user', prompt, self.file_handler.use())
         context.add_message('user', prompt)
         return context, self.generate_response(context)
 
     def response_pipeline(self, prompt, context=None):
+        if prompt.startswith('upload'):
+            response = self.upload_file(prompt[7:])
+            return context, response.text
         result_context, response = self.generate_answer(prompt, context)
         if response.status_code != 200:
-            return f'Ошибка :(\n{response.status_code} {response.content}'
+            return context, f'Ошибка :(\n{response.status_code} {response.json()}'
         prev_messages = json.loads(response.request.body)['messages'][1:]
-        agent_output = json.loads(json.loads(response.text)['choices'][0]['message']['content'])
-        self_rating = agent_output['confidence_level']
-        assistant_message = {
-            'role': 'assistant',
-            'content': agent_output['output']
-        }
+        assistant_message = json.loads(response.text)['choices'][0]['message']
         context = get_confidence_context([*prev_messages, assistant_message])
         retries = 0
-        other_rating = 0
+        rating = 0
         other_rating_generated = False
         while retries < 3:
             rating_output = json.loads(self.generate_response(context).text)['choices'][0]['message']['content']
             if len(rating_output) > 0:
-                other_rating = json.loads(rating_output)['confidence_level']
+                rating = json.loads(rating_output)['confidence_level']
                 other_rating_generated = True
                 break
             retries += 1
-        if not other_rating_generated:
-            other_rating = self_rating
         result_context.add_message(assistant_message['role'], assistant_message['content'])
         return (result_context,
-                assistant_message['content'] + f'\n\nУровень уверенности: {self_rating}%/{other_rating}%' +
-                ('' if other_rating_generated else ' (уровень оценки не удалось получить)'))
+                assistant_message['content'] + f'\n\nУровень уверенности: ' +
+                (f'{rating}%' if other_rating_generated else 'не удалось получить'))
 
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='../config/auth.env')
     client = ApiClient(environ["AUTH_KEY"])
-    context = None
+    ctxt = None
     while question := input():
-        context, message = client.response_pipeline(question, context)
-        print(message)
+        ctxt, msg = client.response_pipeline(question, ctxt)
+        print(msg)
