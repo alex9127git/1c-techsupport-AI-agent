@@ -44,3 +44,12 @@ def get_model_query_template() -> Request:
         }
     )
 
+
+def get_model_attachment_template() -> Request:
+    """
+    :return: Шаблон объекта Request с необходимыми данными для загрузки файлов на обработку агенту.
+    """
+    return Request(
+        'POST',
+        url='https://api.giga.chat/v1/files'
+    )

@@ -8,11 +8,14 @@ class Context:
     def __init__(self):
         self.messages = []
 
-    def add_message(self, role, message):
-        self.messages.append({
+    def add_message(self, role, message, attachments=None):
+        message = {
             'role': role,
             'content': message
-        })
+        }
+        if attachments is not None:
+            message['attachments'] = attachments
+        self.messages.append(message)
 
     def set_response_format(self, new_format):
         self.response_format = new_format
@@ -38,22 +41,7 @@ def get_empty_context() -> Context:
         'связанные с технической поддержкой 1С.'
     )
     context.set_response_format({
-        'type': 'json_schema',
-        'schema': {
-            'type': 'object',
-            'properties': {
-                'output': {
-                    'type': 'string',
-                    'description': 'Ответ ассистента'
-                },
-                'confidence_level': {
-                    'type': 'integer',
-                    'description': 'Уровень уверенности от 0 до 100'
-                }
-            },
-            'required': ['output', 'confidence_level'],
-            'strict': True
-        }
+        'type': 'text',
     })
     return context
 
