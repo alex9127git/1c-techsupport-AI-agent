@@ -41,9 +41,9 @@ class ApiClient:
         prepared = session.prepare_request(request)
         response = session.send(prepared)
         if response.status_code != 200:
-            return f'Ошибка :(\n{response.status_code} {response.json()}'
+            return response.json()
         self.file_handler.add_file(json.loads(str(response.text))['id'])
-        return response
+        return response.json()
 
     def generate_response(self, context: Context) -> Response:
         self.update_token()
@@ -75,7 +75,7 @@ class ApiClient:
     def response_pipeline(self, prompt, context=None):
         if prompt.startswith('upload'):
             response = self.upload_file(prompt[7:])
-            return context, response.text
+            return context, response
         result_context, response = self.generate_answer(prompt, context)
         if response.status_code != 200:
             return context, f'Ошибка :(\n{response.status_code} {response.json()}'
@@ -86,7 +86,12 @@ class ApiClient:
         rating = 0
         other_rating_generated = False
         while retries < 3:
-            rating_output = json.loads(self.generate_response(context).text)['choices'][0]['message']['content']
+            response = self.generate_response(context)
+            if response.status_code != 200:
+                print(response.json())
+                rating_output = ''
+            else:
+                rating_output = json.loads(response.text)['choices'][0]['message']['content']
             if len(rating_output) > 0:
                 rating = json.loads(rating_output)['confidence_level']
                 other_rating_generated = True
