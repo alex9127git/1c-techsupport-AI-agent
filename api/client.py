@@ -104,7 +104,7 @@ class ApiClient:
 
 
 if __name__ == '__main__':
-    load_dotenv(dotenv_path='../config/auth.env')
+    load_dotenv(dotenv_path='../config/.env')
     client = ApiClient(environ["AUTH_KEY"])
     ctxt = None
     while question := input():
