@@ -1,10 +1,10 @@
 from pathlib import Path
 
 if __name__ == 'rag.chunking':
-    print('Импортируются парсеры текста...')
+    print('Импортируются сплиттеры текста...')
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 if __name__ == 'rag.chunking':
-    print('Завершён импорт парсеров текста.')
+    print('Завершён импорт сплиттеров текста.')
 from pypdf import PdfReader
 
 from rag.fileutils import make_doc_id

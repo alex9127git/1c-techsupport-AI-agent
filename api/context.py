@@ -79,3 +79,34 @@ def get_confidence_context(messages_to_rate) -> Context:
     for message in messages_to_rate:
         context.add_message(message['role'], message['content'])
     return context
+
+def get_rewording_context(messages_to_rate) -> Context:
+    """
+    :param messages_to_rate: Предыдущие сообщения, которые агент Gigachat будет переформулировать.
+    :return: Возвращает контекст, необходимый для переформулирования контекста для агента Gigachat.
+    """
+    context = Context()
+    context.add_message(
+        'system',
+        'Ты - AI-агент в известной бизнес корпорации, бухгалтерский отдел которой использует технологии 1С.\n'
+        'Их система использует AI-агента в отделе технической поддержки для того, чтобы помогать пользователям. '
+        'Твоя задача - переформулировать контекст переданного тебе диалога в самодостаточный запрос '
+        'для последующей векторной обработки embedding-моделями.\n'
+    )
+    context.set_response_format({
+        'type': 'json_schema',
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'query': {
+                    'type': 'text',
+                    'description': 'Полученный запрос'
+                }
+            },
+            'required': ['query'],
+            'strict': True
+        }
+    })
+    for message in messages_to_rate:
+        context.add_message(message['role'], message['content'])
+    return context

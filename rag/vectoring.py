@@ -1,7 +1,11 @@
 from pathlib import Path
 
+if __name__ == 'rag.vectoring':
+    print('Импортируются парсеры текста...')
 import chromadb
 from sentence_transformers import SentenceTransformer
+if __name__ == 'rag.vectoring':
+    print('Завершён импорт парсеров текста...')
 
 from rag.const import EMBED_BATCH
 
@@ -48,3 +52,36 @@ class VectorIndex:
             )
             written += len(batch)
         return written
+
+    def embed_query(self, text: str):
+        return self.model.encode(
+            [f"query: {text}"],
+            normalize_embeddings=True,
+        ).tolist()
+
+    def search(self,
+               query: str,
+               k: int,
+               where: dict | None = None,
+               min_score: float | None = None):
+        res = self.collection.query(
+            query_embeddings=self.embed_query(query),
+            n_results=k,
+            where=where,
+            include=["documents", "metadatas", "distances"],
+        )
+        hits = []
+        for doc, meta, dist in zip(
+            res["documents"][0],
+            res["metadatas"][0],
+            res["distances"][0],
+        ):
+            score = 1.0 - dist
+            if min_score is not None and score < min_score:
+                continue
+            hits.append({
+                "text": doc,
+                "meta": meta,
+                "score": score
+            })
+        return hits
