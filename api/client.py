@@ -69,7 +69,6 @@ class ApiClient:
             context.add_message('user', prompt)
         else:
             context.add_message('user', prompt, self.file_handler.use())
-        context.add_message('user', prompt)
         return context, self.generate_response(context)
 
     def response_pipeline(self, prompt, context=None):
