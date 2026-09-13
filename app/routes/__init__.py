@@ -23,7 +23,7 @@ def register_blueprints(app: Flask) -> None:
 
     @app.route("/")
     def index():
-        return render_template("index.html")
+        return render_template("ver2.html")
 
     @app.errorhandler(ApiException)
     def handle_api_exception(exc: ApiException):

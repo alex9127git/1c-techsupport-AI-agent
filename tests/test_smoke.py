@@ -11,4 +11,4 @@ def test_health(client):
 def test_root_page(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "1C Techsupport AI Agent" in resp.get_data(as_text=True)
+    assert "AI-агента техподдержки" in resp.get_data(as_text=True)
