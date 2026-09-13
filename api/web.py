@@ -1,5 +1,8 @@
+import json
 import uuid
-from requests import Request, Session
+from typing import Any
+
+from requests import Request, Session, Response
 
 
 def get_empty_session() -> Session:
@@ -53,3 +56,7 @@ def get_model_attachment_template() -> Request:
         'POST',
         url='https://api.giga.chat/v1/files'
     )
+
+
+def get_message_from_response(r: Response) -> dict[Any, Any]:
+    return json.loads(r.text)['choices'][0]['message']

@@ -7,3 +7,8 @@ pydantic-settings
 sqlalchemy
 alembic
 pytest
+uliweb-alembic
+pypdf
+langchain-text-splitters
+sentence-transformers
+chromadb

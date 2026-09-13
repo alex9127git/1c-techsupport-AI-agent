@@ -3,3 +3,7 @@ __pycache__/
 *.py[cod]
 .venv/
 *.db
+db/chroma_db/
+tmp/
+
+.idea/
