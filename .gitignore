@@ -3,4 +3,5 @@ __pycache__/
 *.py[cod]
 .venv/
 *.db
-rag/chroma_db/
+db/chroma_db/
+tmp/
