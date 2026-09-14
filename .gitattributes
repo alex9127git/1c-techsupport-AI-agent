@@ -1,0 +1,3 @@
+# Приведение entrypoint к LF при checkout на Linux (иначе /bin/sh\r)
+docker/entrypoint.sh text eol=lf
+*.sh text eol=lf

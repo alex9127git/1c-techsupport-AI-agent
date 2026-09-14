@@ -9,7 +9,6 @@ data/
 config/.env
 tests/
 docs/
-docker/
 .idea/
 opencode.json
 .git/
