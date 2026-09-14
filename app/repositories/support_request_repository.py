@@ -38,13 +38,21 @@ class SupportRequestRepository:
         rows = self._session.scalars(
             select(SupportRequest).order_by(SupportRequest.id.desc()).limit(limit)
         ).all()
-        return [
-            {
+        items = []
+        for r in rows:
+            try:
+                payload = json.loads(r.payload or "{}")
+            except Exception:
+                payload = {}
+            items.append({
                 "id": r.id,
                 "channel": r.channel,
                 "status": r.status,
                 "response_ms": r.response_ms,
+                "question": payload.get("question") or "",
+                "answer": payload.get("answer") or "",
+                "confidence": payload.get("confidence"),
+                "sources": payload.get("sources") or [],
                 "created_at": r.created_at.isoformat() if r.created_at else None,
-            }
-            for r in rows
-        ]
+            })
+        return items

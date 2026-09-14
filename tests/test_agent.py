@@ -15,12 +15,13 @@ from app.services import AgentService, EscalationService, SettingsService
 class FakeProvider:
     configured = True
 
-    def __init__(self, confidence=90, answer="Ответ из теста"):
+    def __init__(self, confidence=90, answer="Ответ из теста", sources=None):
         self.confidence = confidence
         self.answer_text = answer
+        self.sources = sources or []
 
     def answer(self, message, history=None):
-        return AnswerResult(answer=self.answer_text, confidence=self.confidence)
+        return AnswerResult(answer=self.answer_text, confidence=self.confidence, sources=self.sources)
 
     def status_text(self):
         return "AUTH_KEY не задан"
@@ -78,6 +79,47 @@ def test_provider_error_returns_error_status(app):
     resp = agent.answer_question(ChatRequest(message="привет"))
     assert resp.status == ResultStatus.ERROR
     assert "Ошибка" in resp.answer
+
+
+def test_sources_are_returned_and_logged(app):
+    agent = build_agent(app, FakeProvider(sources=["ценообразование.md", "обмен.md"]))
+    resp = agent.answer_question(ChatRequest(message="как настроить обмен?"))
+    assert resp.sources == ["ценообразование.md", "обмен.md"]
+
+    session = get_database().session()
+    try:
+        from app.services.metrics import MetricsService
+
+        metrics = MetricsService(
+            support_repo=SupportRequestRepository(session),
+            escalation_repo=EscalationRepository(session),
+        )
+        logs = metrics.logs().items
+        latest = logs[0]
+        assert latest["question"] == "как настроить обмен?"
+        assert latest["answer"] == "Ответ из теста"
+        assert latest["confidence"] == 90
+        assert latest["sources"] == ["ценообразование.md", "обмен.md"]
+    finally:
+        session.close()
+
+
+def test_channel_is_logged(app):
+    agent = build_agent(app, FakeProvider())
+    agent.answer_question(ChatRequest(message="вопрос из битрикса"), channel="bitrix")
+
+    session = get_database().session()
+    try:
+        from app.services.metrics import MetricsService
+
+        metrics = MetricsService(
+            support_repo=SupportRequestRepository(session),
+            escalation_repo=EscalationRepository(session),
+        )
+        latest = metrics.logs().items[0]
+        assert latest["channel"] == "bitrix"
+    finally:
+        session.close()
 
 
 def test_metrics_after_requests(app):

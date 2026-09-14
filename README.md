@@ -66,7 +66,10 @@ python -m scripts.index_docs out
 ## Интеграции: Bitrix24 и Redmine
 
 Помощник умеет отвечать на обращения из внешних систем: чат Bitrix24 и
-задачи Redmine. Подключение — на вкладке «Интеграции» панели или через API.
+задачи Redmine. Статус каналов (подключён/нет) и единый журнал обращений
+видны на вкладке «Обращения» панели, подключение выполняется в dev-консоли
+(`/dev`) или через API. Также в панели есть вкладка «Тестовый чат» — можно
+проверить работу агента без внешних каналов.
 
 ### API
 
@@ -110,6 +113,60 @@ python -m scripts.index_docs out
 > (`https://{домен}/api/integrations/...`). Для локального запуска можно
 > использовать туннель (например, ngrok) до сервера.
 
+## Развёртывание (Docker)
+
+Проект собирается в контейнер и запускается через `docker compose`.
+
+### Локальная проверка образа
+
+```powershell
+docker build -t 1c-ai-agent .
+docker compose up -d
+# панель: http://127.0.0.1:5000
+# dev-консоль: http://127.0.0.1:5000/dev
+docker compose logs -f app
+```
+
+### Выкладка на VPS (Linux)
+
+```bash
+# 1. Клонируйте репозиторий
+git clone https://github.com/<ваш>/1c-techsupport-AI-agent.git
+cd 1c-techsupport-AI-agent
+
+# 2. Конфигурация (AUTH_KEY и пр.)
+cp config/.env.example config/.env
+nano config/.env   # укажите AUTH_KEY, при необходимости DOCS_DIR и др.
+
+# 3. Документы базы знаний (RAG)
+mkdir -p data/docs
+#   положите сюда инструкции/регламенты 1С (.md, .txt, .pdf)
+
+# 4. Сборка и запуск
+docker compose up -d --build
+
+# 5. Проверка
+curl http://127.0.0.1:5000/api/dashboard
+docker compose logs -f app
+```
+
+Что сохраняется между перезапусками (volumes):
+- `./db` — векторные индексы и state-база RAG;
+- `./data/docs` — документы базы знаний;
+- `hf-cache` — скачанная модель эмбеддингов;
+- `app-vol` — SQLite БД приложения (`/app/vol/app.db`).
+
+При первом старте entrypoint выполняет `alembic upgrade head` и
+`python -m scripts.seed`, затем запускает gunicorn на порту 5000.
+
+### Вебхуки Bitrix24 / Redmine на проде
+
+Перед порталом нужен публичный HTTPS. Простейший вариант — reverse-proxy
+(nginx/Caddy) с Let's Encrypt до порта 5000. Затем укажите адреса вебхуков:
+
+- Bitrix24: `https://{домен}/api/integrations/bitrix/receive`
+- Redmine: `https://{домен}/api/integrations/redmine/receive`
+
 ## Маршруты
 
 - `/` — панель администратора
@@ -130,6 +187,7 @@ app/       Flask-приложение: routes, services, repositories, models, s
 api/       Ядро на GigaChat: клиент, контексты, авторизация, файлы
 rag/       RAG-пайплайн: индексация документов и векторный поиск (Chroma)
 config/    Конфигурация (.env) и сертификаты
+docker/    Entrypoint для Docker-контейнера
 scripts/   Вспомогательные скрипты (seed.py — наполнение БД)
 tests/     Тесты на pytest
 wsgi.py    Точка входа приложения

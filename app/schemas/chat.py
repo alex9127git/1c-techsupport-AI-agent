@@ -18,6 +18,7 @@ class ChatResponse(BaseModel):
     confidence: int = Field(default=0, ge=0, le=100)
     escalated: bool = False
     escalation_id: int | None = None
+    sources: list[str] = []
     status: ResultStatus = ResultStatus.NOT_IMPLEMENTED
 
 

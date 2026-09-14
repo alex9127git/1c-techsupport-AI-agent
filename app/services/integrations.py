@@ -87,7 +87,7 @@ class IntegrationsService:
             return {"accepted": False, "reason": "channel_disabled"}
         config = _channel_config(channel)
 
-        response = self._agent.answer_question(ChatRequest(message=message))
+        response = self._agent.answer_question(ChatRequest(message=message), channel=CHANNEL_BITRIX)
         if response.status != ResultStatus.OK:
             return {"accepted": False, "reason": response.status.value}
 
@@ -117,7 +117,7 @@ class IntegrationsService:
         config = _channel_config(channel)
 
         question = f"{subject}\n\n{description}".strip()
-        response = self._agent.answer_question(ChatRequest(message=question))
+        response = self._agent.answer_question(ChatRequest(message=question), channel=CHANNEL_REDMINE)
         if response.status != ResultStatus.OK:
             return {"accepted": False, "reason": response.status.value}
 

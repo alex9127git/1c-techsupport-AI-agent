@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    container_name: 1c-ai-agent
+    ports:
+      - "5000:5000"
+    env_file:
+      - config/.env
+    environment:
+      # SQLite уходит в named volume (переживает пересоздание контейнера)
+      - DATABASE_URL=sqlite:////app/vol/app.db
+    volumes:
+      # Данные RAG (векторные индексы + state-база) — переживают пересборку
+      - ./db:/app/db
+      # Документы базы знаний для индексации
+      - ./data/docs:/app/data/docs
+      # Кэш модели эмбеддингов (не скачивать при каждом старте)
+      - hf-cache:/app/.cache
+      # SQLite БД приложения (named volume)
+      - app-vol:/app/vol
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  hf-cache:
+  app-vol:

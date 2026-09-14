@@ -59,6 +59,9 @@
         escalations: function () {
             return call("GET", "/api/escalations");
         },
+        integrations: function () {
+            return call("GET", "/api/integrations");
+        },
         logs: function () {
             return call("GET", "/api/logs");
         },

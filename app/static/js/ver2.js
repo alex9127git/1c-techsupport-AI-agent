@@ -436,35 +436,6 @@
             });
         }
 
-        function sendChatMessage() {
-            const inputField = document.getElementById('chatInput');
-            const text = inputField.value.trim();
-            if (!text) return;
-
-            const history = document.getElementById('chatHistory');
-            const opMsg = document.createElement('div');
-            opMsg.className = 'msg msg-user';
-            opMsg.innerHTML = text;
-            history.appendChild(opMsg);
-            inputField.value = '';
-            history.scrollTop = history.scrollHeight;
-
-            API.chat(text).then((res) => {
-                const aiResponse = document.createElement('div');
-                aiResponse.className = 'msg msg-ai';
-                aiResponse.style.borderLeft = '3px solid var(--accent-cyan)';
-                if (isNotImplemented(res)) {
-                    aiResponse.innerHTML = '<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> Ответ доступен после подключения ядра (not_implemented).';
-                } else if (res.ok && res.data) {
-                    aiResponse.innerHTML = `<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> ${res.data.answer || ''} <span class="badge-status badge-success" style="margin-left:6px;">${res.data.confidence || 0}%</span>`;
-                } else {
-                    aiResponse.innerHTML = `<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> ${API.errorMessage(res)}`;
-                }
-                history.appendChild(aiResponse);
-                history.scrollTop = history.scrollHeight;
-            });
-        }
-
         function selectLiveChat(element, user, topic, confidence) {
             document.querySelectorAll('#tab-live-chats .chat-item').forEach(c => c.classList.remove('active'));
             element.classList.add('active');
@@ -474,10 +445,130 @@
             }
         }
 
-        function selectChat(element, user) {
-            document.querySelectorAll('#tab-chats .chat-item').forEach(c => c.classList.remove('active'));
-            element.classList.add('active');
-            if (user) document.getElementById('currentChatUser').innerText = user;
+        /* РЕАЛЬНЫЕ ОБРАЩЕНИЯ (ВСЕ КАНАЛЫ) */
+        let requestFilter = 'all';
+
+        function setRequestFilter(channel, btn) {
+            requestFilter = channel;
+            ['all', 'bitrix', 'redmine', 'chat'].forEach((c) => {
+                const b = document.getElementById('reqFilter' + c.charAt(0).toUpperCase() + c.slice(1));
+                if (b) b.classList.toggle('active', c === channel);
+            });
+            if (btn) btn.classList.add('active');
+            loadRequests();
+        }
+
+        function channelLabel(channel) {
+            const c = String(channel || '').toLowerCase();
+            if (c === 'bitrix') return 'Bitrix24';
+            if (c === 'redmine') return 'Redmine';
+            if (c === 'chat') return 'Тестовый чат';
+            return escapeHtml(channel || '—');
+        }
+
+        function loadRequests() {
+            API.logs().then((res) => {
+                const tbody = document.querySelector('#requestsTable tbody');
+                if (!tbody) return;
+                const items = (res.ok && res.data && res.data.items) ? res.data.items : [];
+                const filtered = requestFilter === 'all' ? items : items.filter((it) => String(it.channel || '').toLowerCase() === requestFilter);
+                if (!items.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Журнал пуст. Вопросы появятся после подключения канала или общения в тестовом чате.</td></tr>';
+                } else if (!filtered.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Нет обращений по выбранному каналу.</td></tr>';
+                } else {
+                    tbody.innerHTML = filtered.map((it) => {
+                        const badge = it.confidence != null ? confidenceBadge(it.confidence) : '<strong>—</strong>';
+                        const sources = (it.sources && it.sources.length)
+                            ? it.sources.map((s) => '<span class="badge-status badge-blue" style="margin-right:4px;">' + escapeHtml(s) + '</span>').join('')
+                            : '<span style="color: var(--text-muted);">—</span>';
+                        return '<tr>' +
+                            '<td>' + escapeHtml(it.created_at || it.time || '—') + '</td>' +
+                            '<td>' + channelLabel(it.channel) + '</td>' +
+                            '<td>' + escapeHtml(it.question || '—') + '</td>' +
+                            '<td style="max-width: 420px;">' + escapeHtml(it.answer || '—') + '</td>' +
+                            '<td>' + sources + '</td>' +
+                            '<td>' + badge + '</td>' +
+                            '<td>' + statusBadge(it.status) + '</td></tr>';
+                    }).join('');
+                }
+            }).catch(() => {
+                const tbody = document.querySelector('#requestsTable tbody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--accent-red);">Не удалось загрузить журнал обращений.</td></tr>';
+            });
+
+            API.integrations().then((res) => {
+                const chips = document.getElementById('channelStatusChips');
+                const onboarding = document.getElementById('requestsOnboarding');
+                if (!chips) return;
+                const channels = (res.ok && res.data && res.data.channels) ? res.data.channels : [];
+                let anyEnabled = false;
+                const html = channels.map((ch) => {
+                    const label = ch.channel === 'bitrix' ? 'Bitrix24' : (ch.channel === 'redmine' ? 'Redmine' : escapeHtml(ch.channel));
+                    const active = !!ch.enabled;
+                    if (active) anyEnabled = true;
+                    return '<span class="badge-status ' + (active ? 'badge-success' : 'badge-warning') + '" title="' + (active ? 'Канал подключен' : 'Канал не подключен') + '">' +
+                        '<i class="fa-solid ' + (active ? 'fa-circle-check' : 'fa-circle-xmark') + '"></i> ' + label + (active ? ' подключен' : ' не подключен') +
+                        '</span>';
+                }).join('');
+                chips.innerHTML = html || '<span style="font-size:12px; color:var(--text-muted);">Каналы не настроены</span>';
+                if (onboarding) onboarding.style.display = anyEnabled ? 'none' : 'block';
+            });
+        }
+
+        /* ТЕСТОВЫЙ ЧАТ (ДЕМО БЕЗ ВНЕШНИХ КАНАЛОВ) */
+        function appendTestMessage(html, isUser) {
+            const history = document.getElementById('testChatHistory');
+            if (!history) return;
+            const msg = document.createElement('div');
+            msg.className = 'msg ' + (isUser ? 'msg-user' : 'msg-ai');
+            msg.style.borderLeft = isUser ? 'none' : '3px solid var(--accent-cyan)';
+            msg.innerHTML = html;
+            history.appendChild(msg);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function sendTestChatMessage() {
+            const input = document.getElementById('testChatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            appendTestMessage(escapeHtml(text), true);
+            input.value = '';
+            appendTestMessage('<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> <i class="fa-solid fa-spinner fa-spin"></i> анализирую вопрос...', false);
+            API.chat(text, []).then((res) => {
+                const history = document.getElementById('testChatHistory');
+                const last = history.querySelector('div:last-child');
+                if (last) last.remove();
+                if (res.ok && res.data) {
+                    const sources = (res.data.sources && res.data.sources.length)
+                        ? '<div style="font-size:11px; color: var(--accent-blue); margin-top:6px;"><i class="fa-solid fa-book"></i> Источники: ' + res.data.sources.map((s) => escapeHtml(s)).join(', ') + '</div>'
+                        : '';
+                    appendTestMessage('<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> <span style="white-space: pre-wrap;">' + escapeHtml(res.data.answer || '') + '</span> <span class="badge-status badge-success" style="margin-left:6px;">' + (res.data.confidence || 0) + '%</span>' + sources, false);
+                } else {
+                    appendTestMessage('<i class="fa-regular fa-circle-xmark" style="color: var(--accent-red);"></i> ' + API.errorMessage(res), false);
+                }
+            });
+        }
+
+        function handleTestScreenshotUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const preview = document.getElementById('testScreenshotPreview');
+            if (preview) preview.innerText = 'Файл: ' + file.name;
+            appendTestMessage('<strong>Пользователь:</strong> <i class="fa-solid fa-image"></i> Скриншот: ' + escapeHtml(file.name), true);
+            appendTestMessage('<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> <i class="fa-solid fa-spinner fa-spin"></i> анализирую изображение...', false);
+            API.chatImage(file).then((res) => {
+                const history = document.getElementById('testChatHistory');
+                const last = history && history.querySelector('div:last-child');
+                if (last) last.remove();
+                if (res.ok && res.data && res.data.analysis) {
+                    appendTestMessage('<i class="fa-solid fa-robot"></i> <strong>AI-Агент:</strong> <span style="white-space: pre-wrap;">' + escapeHtml(res.data.analysis) + '</span>', false);
+                } else if (res.ok && res.data && res.data.error) {
+                    appendTestMessage('<i class="fa-regular fa-circle-xmark" style="color: var(--accent-red);"></i> ' + escapeHtml(res.data.error), false);
+                } else {
+                    appendTestMessage('<i class="fa-regular fa-circle-xmark" style="color: var(--accent-red);"></i> ' + API.errorMessage(res), false);
+                }
+            });
         }
 
         /* API-ИНТЕГРАЦИЯ ПАНЕЛИ */
@@ -635,6 +726,7 @@
             else if (tabId === 'settings') loadSettings();
             else if (tabId === 'kb') loadKb();
             else if (tabId === 'logs') loadLogs();
+            else if (tabId === 'requests') loadRequests();
             else if (tabId === 'live-chats') loadEscalations();
         }
 
@@ -645,3 +737,10 @@
 
         refreshActiveTab();
         loadEscalations();
+
+        const testChatInput = document.getElementById('testChatInput');
+        if (testChatInput) {
+            testChatInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); sendTestChatMessage(); }
+            });
+        }

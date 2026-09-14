@@ -28,7 +28,7 @@ class AgentService:
         self._escalations = escalation_service
         self._support = support_repo
 
-    def answer_question(self, request: ChatRequest) -> ChatResponse:
+    def answer_question(self, request: ChatRequest, channel: str = "chat") -> ChatResponse:
         if not self._provider.configured:
             return ChatResponse(
                 answer=self._provider.status_text(),
@@ -61,11 +61,12 @@ class AgentService:
             escalation_id = self._escalations.escalate(request.message, result.answer, confidence)
 
         self._support.create(
-            channel="chat",
+            channel=channel,
             payload={
                 "question": request.message,
                 "answer": result.answer,
                 "confidence": confidence,
+                "sources": result.sources,
                 "history": len(history),
             },
             status="escalated" if escalated else "answered",
@@ -77,6 +78,7 @@ class AgentService:
             confidence=confidence,
             escalated=escalated,
             escalation_id=escalation_id,
+            sources=result.sources,
             status=ResultStatus.OK,
         )
 

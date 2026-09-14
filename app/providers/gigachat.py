@@ -111,6 +111,8 @@ class GigaChatProvider:
 
     def answer(self, message: str, history: list[dict[str, str]] | None = None) -> AnswerResult:
         """Возвращает ответ GigaChat с опорой на RAG-контекст и уверенность."""
+        from pathlib import Path
+
         self._ensure_ready()
         if history is None:
             history = []
@@ -118,7 +120,11 @@ class GigaChatProvider:
         result = AnswerResult(answer=answer, confidence=confidence)
         if self._index is not None:
             searched = self._index.search(message, k=3)
-            result.sources = [item["text"] for item in searched]
+            names = []
+            for item in searched:
+                source = (item.get("meta") or {}).get("source") or ""
+                names.append(Path(source).name if source else "")
+            result.sources = [n for n in names if n]
         return result
 
     def analyze_image(self, prompt: str, image_path: str) -> str:

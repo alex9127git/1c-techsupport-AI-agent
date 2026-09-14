@@ -48,8 +48,8 @@
                         <span class="menu-counter-badge" id="liveChatBadge">3</span>
                     </a>
                 </li>
-                <li data-tab="chats"><a href="#"><i class="fa-solid fa-comments"></i> Чаты (Bitrix24)</a></li>
-                <li data-tab="tickets"><a href="#"><i class="fa-solid fa-ticket"></i> Заявки (Redmine)</a></li>
+                <li data-tab="requests"><a href="#"><i class="fa-solid fa-inbox"></i> Обращения</a></li>
+                <li data-tab="test-chat"><a href="#"><i class="fa-solid fa-microchip"></i> Тестовый чат</a></li>
                 <li data-tab="screenshots"><a href="#"><i class="fa-solid fa-brain"></i> Анализ скриншотов 1С</a></li>
 
                 <li class="nav-section-title" style="margin-top: 15px;">Управление</li>
@@ -334,66 +334,79 @@
                 </div>
             </div>
 
-            <!-- TAB 2: CHATS (BITRIX24) -->
-            <div class="tab-content" id="tab-chats">
-                <div class="chat-container">
-                    <div class="chat-sidebar">
-                        <div class="chat-item active" onclick="selectChat(this, 'Иван Петров (Бухгалтерия)')">
-                            <div class="chat-item-header">
-                                <h4>Иван Петров (Бухгалтерия)</h4>
-                                <span class="chat-time">10:42</span>
-                            </div>
-                            <p>Ошибка при закрытии месяца в ERP...</p>
+            <!-- TAB: REQUESTS (ВСЕ ОБРАЩЕНИЯ: BITRIX + REDMINE) -->
+            <div class="tab-content" id="tab-requests">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-title"><i class="fa-solid fa-inbox" style="color: var(--accent-cyan);"></i> Обращения AI-агента</span>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Единый журнал всех обращений из Bitrix24 и Redmine</p>
                         </div>
+                        <div style="display: flex; gap: 8px; align-items: center;" id="channelStatusChips"></div>
                     </div>
-                    <div class="chat-main">
-                        <div class="chat-header">
-                            <div class="chat-header-info">
-                                <h3 id="currentChatUser">Иван Петров (Бухгалтерия)</h3>
-                                <p><i class="fa-solid fa-robot"></i> AI-Агент обрабатывает диалог</p>
-                            </div>
-                        </div>
-                        <div class="chat-history" id="chatHistory">
-                            <div class="msg msg-user">Привет! Ошибка распределения затрат в 1С:ERP.</div>
-                            <div class="msg msg-ai">Проверьте отчет "Анализ себестоимости" и статьи калькуляции.</div>
-                        </div>
-                        <div class="chat-input-area">
-                            <input type="text" id="chatInput" placeholder="Введите сообщение...">
-                            <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i> Отправить</button>
-                        </div>
+
+                    <div class="request-filters" style="display: flex; gap: 8px; margin: 15px 0;">
+                        <button class="btn-timeframe active" id="reqFilterAll" onclick="setRequestFilter('all', this)">Все</button>
+                        <button class="btn-timeframe" id="reqFilterBitrix" onclick="setRequestFilter('bitrix', this)"><i class="fa-solid fa-comments"></i> Bitrix24</button>
+                        <button class="btn-timeframe" id="reqFilterRedmine" onclick="setRequestFilter('redmine', this)"><i class="fa-solid fa-ticket"></i> Redmine</button>
+                        <button class="btn-timeframe" id="reqFilterChat" onclick="setRequestFilter('chat', this)"><i class="fa-solid fa-microchip"></i> Тестовый чат</button>
+                    </div>
+
+                    <div id="requestsOnboarding" style="display: none; margin-bottom: 15px; padding: 14px; border: 1px dashed var(--border-color); border-radius: 12px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+                        <strong style="color: var(--accent-blue);"><i class="fa-solid fa-circle-info"></i> Как подключить канал</strong><br>
+                        1. Откройте <a href="/dev" target="_blank" style="color: var(--accent-cyan);">dev-консоль</a> и укажите адрес вебхука Bitrix24 или URL + API-ключ Redmine.<br>
+                        2. Направьте события портала на <code>/api/integrations/bitrix/receive</code> или <code>/api/integrations/redmine/receive</code>.<br>
+                        3. Готово — обращения появятся в этом журнале, а AI-агент ответит в исходном канале.
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="requestsTable">
+                            <thead>
+                                <tr>
+                                    <th>Время</th>
+                                    <th>Канал</th>
+                                    <th>Вопрос</th>
+                                    <th>Ответ AI</th>
+                                    <th>Источники</th>
+                                    <th>Уверенность</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Загрузка обращений...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 3: TICKETS (REDMINE) -->
-            <div class="tab-content" id="tab-tickets">
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Заявки Redmine HelpDesk (Интеграция 1С Молвест)</span>
-                        <button class="modal-btn" onclick="showToast('Синхронизация с Redmine выполнена')"><i class="fa-solid fa-rotate"></i> Синхронизировать</button>
+            <!-- TAB: TEST CHAT (ДЛЯ ОРГАНИЗАТОРОВ / ДЕМО) -->
+            <div class="tab-content" id="tab-test-chat">
+                <div class="card" style="padding: 25px;">
+                    <div class="card-header" style="margin-bottom: 15px;">
+                        <div>
+                            <span class="card-title"><i class="fa-solid fa-microchip" style="color: var(--accent-cyan);"></i> Тестовый чат с AI-агентом</span>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Проверьте работу агента без подключения Bitrix24/Redmine: задайте вопрос 1С или пришлите скриншот ошибки.</p>
+                        </div>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th># ID</th>
-                                <th>Тема обращения</th>
-                                <th>Инициатор</th>
-                                <th>Конфигурация</th>
-                                <th>Приоритет</th>
-                                <th>Статус</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#4821</td>
-                                <td>Ошибка обмена данными с Bitrix24</td>
-                                <td>Дмитрий Ковалев</td>
-                                <td>1С:ERP 2.5</td>
-                                <td><span class="badge-status badge-danger">Высокий</span></td>
-                                <td><span class="badge-status badge-warning">В работе AI</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="chat-container">
+                        <div class="chat-main" style="border: none; max-width: 100%;">
+                            <div class="chat-history" id="testChatHistory" style="min-height: 300px; max-height: 420px; overflow-y: auto; background: var(--bg-main); border-radius: 12px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px;">
+                                <div class="msg msg-ai">
+                                    Здравствуйте! Я AI-ассистент техподдержки 1С АО «Молвест». Задайте вопрос по 1С:ERP / ЗУП / УТ или прикрепите скриншот ошибки.
+                                </div>
+                            </div>
+                            <div class="chat-input-area" style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" id="testChatInput" placeholder="Введите сообщение..." style="flex: 1;">
+                                <button class="modal-btn" onclick="sendTestChatMessage()"><i class="fa-solid fa-paper-plane"></i> Отправить</button>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px;">
+                                <button class="modal-btn" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main);" onclick="triggerFileInput('testScreenshotInput')"><i class="fa-solid fa-camera"></i> Прикрепить скриншот</button>
+                                <input type="file" id="testScreenshotInput" hidden accept="image/*" onchange="handleTestScreenshotUpload(this)">
+                                <div id="testScreenshotPreview" style="font-size: 12px; color: var(--text-muted);"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -15,8 +15,8 @@ class FakeAgent:
         self.answer = answer
         self.status = status
 
-    def answer_question(self, request):
-        self.calls.append(request.message)
+    def answer_question(self, request, channel="chat"):
+        self.calls.append(f"{channel}:{request.message}")
         return ChatResponse(answer=self.answer, confidence=95, escalated=False, status=self.status)
 
 
@@ -121,7 +121,7 @@ def test_process_bitrix_sends_answer(service):
     }
     result = srv.process_bitrix(payload)
     assert result["accepted"] is True
-    assert agent.calls == ["как обновить 1С?"]
+    assert agent.calls == ["bitrix:как обновить 1С?"]
     assert result["answer"] == "Ответ ассистента"
     assert session.calls and session.calls[0][1].endswith("/chat.message.add")
 
