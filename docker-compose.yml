@@ -3,7 +3,8 @@ services:
     build: .
     container_name: 1c-ai-agent
     ports:
-      - "5000:5000"
+      # Хостовый порт 80 → контейнер 5000: сайт доступен по http://<IP> без указания порта
+      - "80:5000"
     env_file:
       - config/.env
     environment:

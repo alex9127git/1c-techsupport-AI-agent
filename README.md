@@ -122,8 +122,8 @@ python -m scripts.index_docs out
 ```powershell
 docker build -t 1c-ai-agent .
 docker compose up -d
-# панель: http://127.0.0.1:5000
-# dev-консоль: http://127.0.0.1:5000/dev
+# панель: http://127.0.0.1 (порт 80)
+# dev-консоль: http://127.0.0.1/dev
 docker compose logs -f app
 ```
 
@@ -146,9 +146,18 @@ mkdir -p data/docs
 docker compose up -d --build
 
 # 5. Проверка
-curl http://127.0.0.1:5000/api/dashboard
+curl http://127.0.0.1/api/dashboard        # порт 80 открыт на хосте
 docker compose logs -f app
 ```
+
+Доступ отдаётся через хостовый порт 80 (см. `docker-compose.yml`), поэтому
+панель и API работают по IP **без указания порта**:
+
+- с VDS: `http://127.0.0.1` или `http://<ip-сервера>`;
+- с любой машины в интернете: `http://<публичный-ip-vds>`.
+
+Проверьте, что файрвол/провайдер пропускают порт 80. Для HTTPS и вебхуков
+Bitrix24/Redmine понадобится домен (см. ниже).
 
 Что сохраняется между перезапусками (volumes):
 - `./db` — векторные индексы и state-база RAG;
