@@ -63,6 +63,53 @@ python -m scripts.index_docs out
 но `/api/chat` отвечает статусом `not_configured` с пояснением. `HF_TOKEN`
 опционален, т.к. модель эмбеддингов публичная.
 
+## Интеграции: Bitrix24 и Redmine
+
+Помощник умеет отвечать на обращения из внешних систем: чат Bitrix24 и
+задачи Redmine. Подключение — на вкладке «Интеграции» панели или через API.
+
+### API
+
+| Эндпоинт | Описание |
+|---|---|
+| `GET /api/integrations` | Список каналов и их статус (enabled) |
+| `POST /api/integrations/bitrix/webhook` | Подключить Bitrix24 (`webhook_url`, `chat_id`) |
+| `POST /api/integrations/redmine/webhook` | Подключить Redmine (`url`, `api_key`, `project_id`) |
+| `POST /api/integrations/bitrix/receive` | Входящие события Bitrix24 (`ONIMBOTV2MESSAGEADD`) |
+| `POST /api/integrations/redmine/receive` | Входящие вебхуки Redmine (плагин `redmine_webhook`) |
+
+Ответ ассистента формируется тем же RAG-пайплайном GigaChat: вопрос → контекст
+базы знаний → ответ с оценкой уверенности → эскалация при низкой уверенности.
+
+### Подключение Bitrix24
+
+1. Создайте исходящий/входящий вебхук на портале Bitrix24 (Разработчикам →
+   Другое → Вебхуки) с правами на чат-бота (`imbot`) и получите URL вида
+   `https://{портал}/rest/{user_id}/{код}/`.
+2. Укажите этот URL в панели (или `POST /api/integrations/bitrix/webhook`).
+3. Настройте доставку событий чат-бота на
+   `https://{наш-домен}/api/integrations/bitrix/receive` (URL обработчика при
+   регистрации бота через `imbot.v2.Bot.register`, `eventMode: webhook`).
+
+После этого сообщения пользователей в чате с ботом будут обрабатываться
+ассистентом, а ответ отправится обратно в диалог.
+
+### Подключение Redmine
+
+1. Установите плагин [redmine_webhook](https://github.com/suer/redmine_webhook)
+   или `redmine-plugin-webhook`.
+2. Создайте API-ключ в Redmine (Мой аккаунт → Показать ключ API).
+3. Укажите URL установки Redmine и API-ключ в панели.
+4. В настройках плагина укажите адрес вебхука:
+   `https://{наш-домен}/api/integrations/redmine/receive`.
+
+При создании задачи плагин отправит вебхук, ассистент ответит по теме задачи,
+и ответ будет добавлен комментарием к задаче через REST API.
+
+> Вебхуки Bitrix24/Redmine доставляют события на публичный HTTPS-URL
+> (`https://{домен}/api/integrations/...`). Для локального запуска можно
+> использовать туннель (например, ngrok) до сервера.
+
 ## Маршруты
 
 - `/` — панель администратора

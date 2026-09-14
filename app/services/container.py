@@ -2,6 +2,7 @@ from flask import Flask
 
 from app.db import get_database, get_session
 from app.repositories import (
+    ChannelRepository,
     EscalationRepository,
     KnowledgeRepository,
     SettingsRepository,
@@ -10,6 +11,7 @@ from app.repositories import (
 from app.services import (
     AgentService,
     EscalationService,
+    IntegrationsService,
     KnowledgeBaseService,
     MetricsService,
     SettingsService,
@@ -55,6 +57,15 @@ class ServiceContainer:
 
     def escalation_service(self) -> EscalationService:
         return EscalationService(EscalationRepository(self._new_session()))
+
+    def channels_repository(self) -> ChannelRepository:
+        return ChannelRepository(self._new_session())
+
+    def integrations_service(self) -> IntegrationsService:
+        return IntegrationsService(
+            channel_repo=self.channels_repository(),
+            agent_service=self.agent_service(),
+        )
 
     def gigachat_provider(self):
         from app.providers.gigachat import GigaChatProvider

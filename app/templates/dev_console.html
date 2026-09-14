@@ -86,12 +86,21 @@
                 <input type="text" id="bitrix-chat" placeholder="chat_id">
                 <button data-action="bitrix-webhook">Подключить Bitrix</button>
             </div>
+            <div class="controls">
+                <input type="text" id="bitrix-demo-message" placeholder="Текст сообщения пользователя">
+                <button data-action="bitrix-demo">Эмул. входящего события Bitrix (ONIMBOTV2MESSAGEADD)</button>
+            </div>
             <h3>Redmine</h3>
             <div class="controls">
                 <input type="text" id="redmine-url" placeholder="url">
                 <input type="text" id="redmine-key" placeholder="api_key">
                 <input type="text" id="redmine-project" placeholder="project_id">
                 <button data-action="redmine-webhook">Подключить Redmine</button>
+            </div>
+            <div class="controls">
+                <input type="text" id="redmine-demo-id" placeholder="id задачи">
+                <input type="text" id="redmine-demo-subject" placeholder="Тема задачи (вопрос)">
+                <button data-action="redmine-demo">Эмул. входящего вебхука Redmine (issue)</button>
             </div>
             <pre id="integrations-result" class="result">—</pre>
         </section>

@@ -213,6 +213,52 @@
             .then(function (p) { renderResult("integrations-result", p); });
     }
 
+    function bitrixDemo() {
+        var message = el("bitrix-demo-message").value;
+        if (!message) {
+            renderResult("integrations-result", { ok: false, error: { code: "validation", message: "Введите текст сообщения" } });
+            return;
+        }
+        var payload = {
+            event: "ONIMBOTV2MESSAGEADD",
+            ts: Math.floor(Date.now() / 1000),
+            data: {
+                bot: { id: 100, code: "demo_bot" },
+                message: { id: 1, chatId: 5, authorId: 9, date: new Date().toISOString(), text: message },
+                chat: { id: 5, dialogId: "chat5", type: "chat" },
+                user: { id: 9, name: "Пользователь (демо)" }
+            }
+        };
+        renderResult("integrations-result", { pending: true });
+        call("POST", "/api/integrations/bitrix/receive", payload)
+            .then(function (p) { renderResult("integrations-result", p); });
+    }
+
+    function redmineDemo() {
+        var id = el("redmine-demo-id").value;
+        var subject = el("redmine-demo-subject").value;
+        if (!id || !subject) {
+            renderResult("integrations-result", { ok: false, error: { code: "validation", message: "Введите id задачи и тему" } });
+            return;
+        }
+        var payload = {
+            payload: {
+                action: "opened",
+                url: "https://demo.local/issues/" + id,
+                issue: {
+                    id: parseInt(id, 10),
+                    subject: subject,
+                    description: "",
+                    tracker: { name: "Поддержка", id: 1 },
+                    priority: { name: "normal", id: 2 }
+                }
+            }
+        };
+        renderResult("integrations-result", { pending: true });
+        call("POST", "/api/integrations/redmine/receive", payload)
+            .then(function (p) { renderResult("integrations-result", p); });
+    }
+
     var actions = {
         chat: submitChat,
         image: submitImage,
@@ -229,6 +275,8 @@
         "int-list": intList,
         "bitrix-webhook": bitrixWebhook,
         "redmine-webhook": redmineWebhook,
+        "bitrix-demo": bitrixDemo,
+        "redmine-demo": redmineDemo,
     };
 
     document.addEventListener("DOMContentLoaded", function () {
