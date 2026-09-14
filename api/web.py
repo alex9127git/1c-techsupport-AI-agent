@@ -1,8 +1,12 @@
 import json
 import uuid
+from pathlib import Path
 from typing import Any
 
 from requests import Request, Session, Response
+
+_BASE_DIR = Path(__file__).resolve().parent.parent
+_CERT_PATH = _BASE_DIR / 'config' / 'sberbank-ru-chain.pem'
 
 
 def get_empty_session() -> Session:
@@ -14,7 +18,7 @@ def get_empty_session() -> Session:
     :return: Объект Session с особыми сертификатами, настроенными для принятия запросов из доверенных сайтов.
     """
     session = Session()
-    session.verify = '../config/sberbank-ru-chain.pem'
+    session.verify = str(_CERT_PATH)
     return session
 
 

@@ -7,3 +7,11 @@ db/chroma_db/
 tmp/
 
 .idea/
+
+# Локальная конфигурация opencode (может содержать свои правила)
+opencode.json
+opencode.jsonc
+
+# Документы и индексы RAG (большие, не в репозиторий)
+data/
+out/

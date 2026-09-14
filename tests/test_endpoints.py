@@ -36,6 +36,10 @@ def test_chat_endpoint(client):
 
 
 def test_chat_image_endpoint(client):
-    resp = client.post("/api/chat/image", data={"message": "что на скрине?"})
+    resp = client.post(
+        "/api/chat/image",
+        data={"file": (__import__("io").BytesIO(b"\x89PNG\r\n\x1a\n"), "scr.png")},
+        content_type="multipart/form-data",
+    )
     assert resp.status_code == 200
     assert resp.get_json()["ok"] is True

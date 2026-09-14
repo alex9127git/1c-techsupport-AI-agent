@@ -22,6 +22,19 @@ def create_document():
     return jsonify(ok(result.model_dump()))
 
 
+@bp.post("/upload")
+def upload_document():
+    file = request.files.get("file")
+    if file is None or not file.filename:
+        from app.schemas.common import ApiException
+
+        raise ApiException(400, "file_required", "Файл не передан (поле 'file')")
+
+    title = request.form.get("title", "").strip()
+    result = get_container().knowledge_service().upload_file(file.filename, file.stream, title)
+    return jsonify(ok(result.model_dump()))
+
+
 @bp.get("/<int:doc_id>")
 def get_document(doc_id: int):
     result = get_container().knowledge_service().get_document(doc_id)

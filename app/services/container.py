@@ -1,7 +1,12 @@
 from flask import Flask
 
 from app.db import get_database, get_session
-from app.repositories import KnowledgeRepository, SettingsRepository
+from app.repositories import (
+    EscalationRepository,
+    KnowledgeRepository,
+    SettingsRepository,
+    SupportRequestRepository,
+)
 from app.services import (
     AgentService,
     EscalationService,
@@ -29,16 +34,34 @@ class ServiceContainer:
         return SettingsService(SettingsRepository(self._new_session()))
 
     def agent_service(self) -> AgentService:
-        return AgentService()
+        return AgentService(
+            provider=self.gigachat_provider(),
+            settings_service=self.settings_service(),
+            escalation_service=self.escalation_service(),
+            support_repo=SupportRequestRepository(self._new_session()),
+        )
 
     def knowledge_service(self) -> KnowledgeBaseService:
-        return KnowledgeBaseService(KnowledgeRepository(self._new_session()))
+        return KnowledgeBaseService(
+            repository=KnowledgeRepository(self._new_session()),
+            indexer=self.gigachat_provider(),
+        )
 
     def metrics_service(self) -> MetricsService:
-        return MetricsService()
+        return MetricsService(
+            support_repo=SupportRequestRepository(self._new_session()),
+            escalation_repo=EscalationRepository(self._new_session()),
+        )
 
     def escalation_service(self) -> EscalationService:
-        return EscalationService()
+        return EscalationService(EscalationRepository(self._new_session()))
+
+    def gigachat_provider(self):
+        from app.providers.gigachat import GigaChatProvider
+
+        if "gigachat" not in self._app.extensions:
+            self._app.extensions["gigachat"] = GigaChatProvider(self._app)
+        return self._app.extensions["gigachat"]
 
     def _new_session(self):
         return get_database().session()

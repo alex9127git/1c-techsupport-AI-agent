@@ -14,6 +14,7 @@ class KnowledgeDocument(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
     tags: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
+    source_file: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()

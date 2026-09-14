@@ -1,6 +1,5 @@
 import sqlite3
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from os import environ
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -47,11 +46,11 @@ def plan_work(conn: sqlite3.Connection, files: list[Path]):
     return to_process, to_delete
 
 
-def run_pipeline(docs_dir) -> None:
+def run_pipeline(docs_dir, confirm: bool = True) -> None:
     files = discover_files(docs_dir)
 
     print(f'Найдено файлов: {len(files)}')
-    if input(f'Продолжить индексацию? [Y/n] ')[:1] not in 'Yy':
+    if confirm and input(f'Продолжить индексацию? [Y/n] ')[:1] not in 'Yy':
         print('Отменено.')
         return
 
@@ -83,7 +82,7 @@ def run_pipeline(docs_dir) -> None:
             result = fut.result()
 
             if result['error']:
-                print(f'[ОШИБКА] {p}: {result['error']}')
+                print(f"[ОШИБКА] {p}: {result['error']}")
                 continue
 
             doc_id = result['doc_id']
@@ -102,5 +101,4 @@ if __name__ == '__main__':
     print('Завершён импорт библиотек.')
     docs_dir = Path(input('Введите полный путь к папке с данными: '))
     load_dotenv(dotenv_path='../config/.env')
-    HF_TOKEN = environ['HF_TOKEN']
     run_pipeline(docs_dir)

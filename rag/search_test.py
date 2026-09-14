@@ -7,7 +7,6 @@ from rag.vectoring import VectorIndex
 
 if __name__ == '__main__':
     load_dotenv(dotenv_path='../config/.env')
-    HF_TOKEN = environ['HF_TOKEN']
     print('Инициализация подключения к базе данных...')
     conn = init_state_db()
     index = VectorIndex(CHROMA_DIR, COLLECTION_NAME, EMBED_MODEL)

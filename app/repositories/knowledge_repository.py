@@ -21,9 +21,9 @@ class KnowledgeRepository:
     def get(self, doc_id: int) -> KnowledgeDocument | None:
         return self._session.get(KnowledgeDocument, doc_id)
 
-    def create(self, data: KbDocumentIn) -> KnowledgeDocument:
+    def create(self, data: KbDocumentIn, source_file: str | None = None) -> KnowledgeDocument:
         doc = KnowledgeDocument(
-            title=data.title, content=data.content, tags=_to_json(data.tags)
+            title=data.title, content=data.content, tags=_to_json(data.tags), source_file=source_file
         )
         self._session.add(doc)
         self._session.commit()

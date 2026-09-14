@@ -292,9 +292,9 @@
         function handleKbUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                API.kbCreate(file.name).then((res) => {
-                    if (res.ok) {
-                        showToast(`Файл "${file.name}" добавлен в базу знаний`);
+                API.kbUpload(file).then((res) => {
+                    if (res.ok && res.data && res.data.accepted) {
+                        showToast(`Файл "${file.name}" загружен и проиндексирован`);
                         loadKb();
                     } else {
                         showToast('Ошибка загрузки: ' + API.errorMessage(res));
@@ -309,14 +309,11 @@
                 const box = document.getElementById('screenshotResult');
                 box.innerHTML = '<div class="ai-thinking-indicator"><i class="fa-solid fa-spinner fa-spin"></i><span>AI-Агент анализирует скриншот...</span></div>';
                 API.chatImage(file).then((res) => {
-                    if (isNotImplemented(res)) {
-                        box.innerHTML = '<div class="ai-thinking-indicator" style="color: var(--accent-orange); border-color: var(--accent-orange);"><i class="fa-solid fa-flask"></i><span>Модуль анализа скриншотов в разработке (not_implemented)</span></div>';
-                        showToast(`Скриншот "${file.name}" принят сервером`);
-                        return;
-                    }
-                    if (res.ok && res.data) {
-                        box.innerHTML = '<div class="feedback-item"><div class="feedback-header"><strong>Результат анализа</strong></div><div class="feedback-text">' + (res.data.analysis || 'Анализ не сформирован') + '</div></div>';
+                    if (res.ok && res.data && res.data.analysis) {
+                        box.innerHTML = '<div class="feedback-item"><div class="feedback-header"><strong>Результат анализа</strong></div><div class="feedback-text">' + escapeHtml(res.data.analysis) + '</div></div>';
                         showToast(`Скриншот "${file.name}" проанализирован`);
+                    } else if (res.ok && res.data && res.data.error) {
+                        box.innerHTML = '<div class="ai-thinking-indicator" style="color: var(--accent-red); border-color: var(--accent-red);"><i class="fa-solid fa-triangle-exclamation"></i><span>' + escapeHtml(res.data.error) + '</span></div>';
                     } else {
                         box.innerHTML = '<div class="ai-thinking-indicator" style="color: var(--accent-red); border-color: var(--accent-red);"><i class="fa-solid fa-triangle-exclamation"></i><span>' + API.errorMessage(res) + '</span></div>';
                     }
@@ -576,10 +573,13 @@
                         const name = doc.title || 'Без названия';
                         const ext = (name.split('.').pop() || '').toLowerCase();
                         const icon = ext === 'pdf' ? 'fa-file-pdf' : (ext === 'docx' || ext === 'doc') ? 'fa-file-word' : (ext === 'db') ? 'fa-server' : 'fa-file-lines';
-                        const meta = 'id=' + (doc.id || '—') + ' • Статус: ' + (doc.status || '—');
+                        const meta = 'id=' + (doc.id || '—') + ' • Статус: ' + (doc.status || '—') + (doc.source_file ? ' • ' + doc.source_file : '');
+                        const badge = doc.indexed
+                            ? '<span class="badge-status badge-success">Индексирован</span>'
+                            : '<span class="badge-status badge-warning">Без индекса</span>';
                         return '<div class="file-item">' +
                             '<div class="file-info"><i class="fa-solid ' + icon + '"></i><div><div>' + escapeHtml(name) + '</div><div class="file-meta">' + escapeHtml(meta) + '</div></div></div>' +
-                            '<div class="file-actions"><span class="badge-status badge-success" style="margin-right: 5px;">Активен</span>' +
+                            '<div class="file-actions">' + badge +
                             '<button class="btn-action-icon danger" title="Удалить" data-doc-id="' + (doc.id || '') + '" onclick="removeKbFile(this)"><i class="fa-solid fa-trash"></i></button></div></div>';
                     }).join('')
                     : '<div class="feedback-item"><div class="feedback-text">Документы еще не загружены. Добавьте первый файл через кнопку «Загрузить новый файл».</div></div>';

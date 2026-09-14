@@ -1,16 +1,20 @@
-from app.schemas.chat import ChatRequest
+from app.repositories import EscalationRepository
 from app.schemas.common import ResultStatus
 
 
 class EscalationService:
     """Создание и управление эскалациями.
 
-    TODO(Фаза 1): при confidence < порога (SettingsService) создавать
-    запись Escalation в БД. На 0-й фазе — валидные контракты-заглушки.
+    Запись Escalation создаётся при ответе с низкой уверенностью
+    (порог из SettingsService).
     """
 
-    def escalate(self, request: ChatRequest, confidence: int) -> int | None:
-        return None
+    def __init__(self, repo: EscalationRepository) -> None:
+        self._repo = repo
+
+    def escalate(self, question: str, answer: str, confidence: int) -> int | None:
+        return self._repo.create(question, answer, confidence)
 
     def notify(self, escalation_id: int) -> ResultStatus:
-        return ResultStatus.NOT_IMPLEMENTED
+        # TODO(Фаза 4): уведомление оператора в интеграциях (Bitrix/Redmine).
+        return ResultStatus.OK

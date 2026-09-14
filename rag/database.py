@@ -42,5 +42,5 @@ def upsert_row(conn, path: str, h: str, size: int, mtime: float, doc_id: str):
 
 
 def delete_row(conn, path: str):
-    conn.execute('DELETE FROM files WHERE path = ?', (path,))
+    conn.execute('DELETE FROM knowledge_data WHERE path = ?', (path,))
     conn.commit()

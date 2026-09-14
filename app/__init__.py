@@ -20,6 +20,9 @@ def create_app(settings: Settings | None = None) -> Flask:
         DATABASE_URL=settings.database_url,
         CONFIDENCE_THRESHOLD=settings.confidence_threshold,
         ESCALATION_STRATEGY=settings.escalation_strategy,
+        AUTH_KEY=settings.auth_key,
+        HF_TOKEN=settings.hf_token,
+        DOCS_DIR=settings.docs_dir,
     )
 
     CORS(app)

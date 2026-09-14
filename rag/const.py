@@ -3,7 +3,7 @@ from os import path
 
 
 BASE_DIR = path.join(path.dirname(os.path.abspath(__file__)), '..')
-DB_PATH = path.join(BASE_DIR, './db/app.db')
+DB_PATH = path.join(BASE_DIR, './db/rag_state.db')
 CHROMA_DIR = path.join(BASE_DIR, './db/chroma_db')
 COLLECTION_NAME = 'documents'
 EMBED_MODEL = 'intfloat/multilingual-e5-base'

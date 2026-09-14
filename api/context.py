@@ -116,3 +116,46 @@ def get_rewording_context(messages_to_rate) -> Context:
     for message in messages_to_rate:
         context.add_message(message['role'], message['content'])
     return context
+
+
+def get_answer_with_confidence_context(messages_to_answer, attachments=None) -> Context:
+    """
+    Возвращает контекст для ответа агента с одновременной оценкой уверенности:
+    один запрос с json_schema {'answer', 'confidence_level'} вместо двух отдельных.
+    Нужен, чтобы уложиться в тайминг ТЗ (< 5 секунд).
+    """
+    context = get_empty_context()
+    context.set_response_format({
+        'type': 'json_schema',
+        'schema': {
+            'type': 'object',
+            'properties': {
+                'answer': {
+                    'type': 'string',
+                    'description': 'Ответ агента технической поддержки'
+                },
+                'confidence_level': {
+                    'type': 'integer',
+                    'description': 'Уровень уверенности в корректности ответа от 0 до 100'
+                }
+            },
+            'required': ['answer', 'confidence_level'],
+            'strict': True
+        }
+    })
+    for message in messages_to_answer:
+        context.add_message(message['role'], message['content'])
+    if attachments is not None:
+        context.messages[-1]['attachments'] = attachments
+    return context
+
+
+def get_image_analysis_context() -> Context:
+    """
+    Возвращает контекст для анализа скриншота интерфейса 1С.
+    Ответ — свободный текст (без json_schema): модель описывает, что видит
+    на изображении, и формулирует рекомендацию по устранению ошибки.
+    """
+    context = get_empty_context()
+    context.set_response_format({'type': 'text'})
+    return context

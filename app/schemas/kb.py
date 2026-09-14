@@ -15,6 +15,8 @@ class KbDocumentOut(BaseModel):
     content: str = ""
     tags: list[str] = []
     status: ResultStatus = ResultStatus.NOT_IMPLEMENTED
+    source_file: str | None = None
+    indexed: bool = False
 
 
 class KbListOut(BaseModel):
@@ -26,6 +28,7 @@ class KbCreateOut(BaseModel):
     id: int | None = None
     accepted: bool = True
     status: ResultStatus = ResultStatus.NOT_IMPLEMENTED
+    indexed: bool = False
 
 
 class KbMutateOut(BaseModel):

@@ -22,10 +22,14 @@ class Settings(BaseSettings):
     app_name: str = "1C Techsupport AI Agent"
     debug: bool = False
 
-    database_url: str = "sqlite:///./app.db"
+    database_url: str = f"sqlite:///{(BASE_DIR / 'app.db').as_posix()}"
 
     confidence_threshold: int = 80
     escalation_strategy: str = "human_review"
+
+    auth_key: str | None = None
+    hf_token: str | None = None
+    docs_dir: str = "data/docs"
 
 
 def get_settings() -> Settings:

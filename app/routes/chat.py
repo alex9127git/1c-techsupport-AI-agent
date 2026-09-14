@@ -17,6 +17,11 @@ def chat():
 
 @bp.post("/image")
 def chat_image():
+    file = request.files.get("file")
+    if file is None or not file.filename:
+        from app.schemas.common import ApiException
+
+        raise ApiException(400, "file_required", "Изображение не передано (поле 'file')")
     message = request.form.get("message")
-    result = get_container().agent_service().analyze_image(message)
+    result = get_container().agent_service().analyze_image(file, message)
     return jsonify(ok(result.model_dump()))

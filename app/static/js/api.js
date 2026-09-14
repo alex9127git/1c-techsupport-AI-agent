@@ -38,6 +38,12 @@
         kbCreate: function (title, content, tags) {
             return call("POST", "/api/kb", { title: title, content: content || "", tags: tags || [] });
         },
+        kbUpload: function (file, title) {
+            var form = new FormData();
+            form.append("file", file);
+            if (title) form.append("title", title);
+            return call("POST", "/api/kb/upload", form, true);
+        },
         kbDelete: function (id) {
             return call("DELETE", "/api/kb/" + id);
         },

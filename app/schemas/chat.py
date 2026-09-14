@@ -24,4 +24,5 @@ class ChatResponse(BaseModel):
 class ImageResponse(BaseModel):
     accepted: bool = True
     analysis: str | None = None
+    error: str | None = None
     status: ResultStatus = ResultStatus.NOT_IMPLEMENTED

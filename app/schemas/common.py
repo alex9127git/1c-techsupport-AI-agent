@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class ResultStatus(StrEnum):
     OK = "ok"
     NOT_IMPLEMENTED = "not_implemented"
+    NOT_CONFIGURED = "not_configured"
     ERROR = "error"
 
 
